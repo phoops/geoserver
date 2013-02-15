@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+
+<beans>
+	<!-- Service Provider SOLR -->
+	<bean id="solrServiceProvider" class="it.phoops.geoserver.ols.geocoding.solr.SOLRServiceProvider">
+	   <property name="active" value="false" />
+	   <property name="descriptionKey" value="OLS.serviceProvider.geocoding.solr.description" />
+       <property name="endpointAddress" value="http://lucene.apache.org/solr/" />
+    </bean>
+    
+    <!-- Service Provider Reverse Geocoding SOLR -->
+	<bean id="solrReverseServiceProvider" class="it.phoops.geoserver.ols.reverse.solr.SOLRReverseServiceProvider">
+	   <property name="active" value="false" />
+	   <property name="descriptionKey" value="OLS.serviceProvider.reverse.solr.description" />
+       <property name="endpointAddress" value="http://lucene.apache.org/solr/" />
+    </bean>
+</beans>

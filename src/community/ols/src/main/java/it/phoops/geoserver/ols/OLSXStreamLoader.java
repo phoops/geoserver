@@ -2,6 +2,7 @@ package it.phoops.geoserver.ols;
 
 import java.util.ArrayList;
 
+import org.geoserver.config.ConfigurationListener;
 import org.geoserver.config.GeoServer;
 import org.geoserver.config.util.XStreamPersister;
 import org.geoserver.config.util.XStreamServiceLoader;

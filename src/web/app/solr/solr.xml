@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<solr persistent="true">
+  <cores defaultCoreName="12I_CPO_TP" adminPath="/admin/cores" zkClientTimeout="${zkClientTimeout:15000}" host="${host:}" hostPort="${jetty.port:}" hostContext="${hostContext:}">
+    <core schema="schema.xml" loadOnStartup="true" instanceDir="12I_CPO_TP/" transient="false" name="12I_CPO_TP" config="solrconfig.xml" dataDir="data"/>
+  </cores>
+</solr>

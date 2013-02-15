@@ -1,18 +1,19 @@
-/* Copyright (c) 2001 - 2013 TOPP - www.openplans.org. All rights reserved.
+/* Copyright (c) 2001 - 2013 OpenPlans - www.openplans.org. All rights reserved.
  * This code is licensed under the GPL 2.0 license, available at the root
  * application directory.
  */
 package org.geoserver.security.decorators;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.geoserver.catalog.AuthorityURLInfo;
 import org.geoserver.catalog.CatalogVisitor;
+import org.geoserver.catalog.LayerGroupHelper;
 import org.geoserver.catalog.LayerGroupInfo;
 import org.geoserver.catalog.LayerIdentifierInfo;
 import org.geoserver.catalog.LayerInfo;
 import org.geoserver.catalog.MetadataMap;
+import org.geoserver.catalog.PublishedInfo;
 import org.geoserver.catalog.StyleInfo;
 import org.geoserver.catalog.WorkspaceInfo;
 import org.geoserver.catalog.impl.AbstractDecorator;
@@ -51,43 +52,21 @@ public class DecoratingLayerGroupInfo extends AbstractDecorator<LayerGroupInfo> 
     }   
     
     @Override
-    public List<LayerInfo> getLayers() {
+    public List<PublishedInfo> getLayers() {
         return delegate.getLayers();
     }
-
-    /**
-     * Warning: method content should be the same as LayerGroupInfoImpl#layers()
-     * @Override
-     */
-    public List<LayerInfo> layers() {
-        switch (getMode()) {
-        case CONTAINER:
-            throw new UnsupportedOperationException("LayerGroup mode " + Mode.CONTAINER.getName() + " can not be rendered");
-        case EO:
-            List<LayerInfo> rootLayerList = new ArrayList<LayerInfo>(1);
-            rootLayerList.add(getRootLayer());
-            return rootLayerList;
-        default:
-            return getLayers();
-        }
-    }
     
-    /**
-     * Warning: method content should be the same as LayerGroupInfoImpl#styles()
-     * @Override
-     */    
-    public List<StyleInfo> styles() {
-        switch (getMode()) {
-        case CONTAINER:
-            throw new UnsupportedOperationException("LayerGroup mode " + Mode.CONTAINER.getName() + " can not be rendered");
-        case EO:
-            List<StyleInfo> rootLayerStyleList = new ArrayList<StyleInfo>(1);
-            rootLayerStyleList.add(getRootLayerStyle());
-            return rootLayerStyleList;
-        default:
-            return getStyles();
-        }        
+    @Override
+    public List<LayerInfo> layers() {
+        LayerGroupHelper helper = new LayerGroupHelper(this);
+        return helper.allLayersForRendering();
     }
+
+    @Override
+    public List<StyleInfo> styles() {
+        LayerGroupHelper helper = new LayerGroupHelper(this);
+        return helper.allStylesForRendering();
+    }  
     
     @Override
     public String getName() {

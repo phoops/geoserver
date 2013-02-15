@@ -2,11 +2,10 @@ package it.phoops.geoserver.ols.geocoding;
 
 import it.phoops.geoserver.ols.OLSException;
 import it.phoops.geoserver.ols.OLSHandler;
+import it.phoops.geoserver.ols.OLSService;
+import it.phoops.geoserver.ols.OLSServiceProvider;
+import it.phoops.geoserver.ols.OLSServiceProviderGUI;
 
-import java.io.File;
-import java.util.Map;
-
-import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -15,29 +14,17 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
 
 import net.opengis.www.xls.GeocodeRequestType;
 import net.opengis.www.xls.GeocodeResponseType;
 
-import org.springframework.context.ApplicationContext;
 import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
 
 public class GeocodingHandler implements OLSHandler {
+    private GeocodingServiceProvider    provider;
 
     @Override
-    public Document processRequest(ApplicationContext applicationContext, Document request) throws OLSException {
-        Map<String,GeocodingServiceProvider>    beans = applicationContext.getBeansOfType(GeocodingServiceProvider.class);
-        GeocodingServiceProvider                provider = null;
-        
-        for (String beanName : beans.keySet()) {
-            provider = beans.get(beanName);
-            
-            System.out.println(beanName + ": " + provider);
-        }
-        
+    public Document processRequest(Document request) throws OLSException {
         JAXBContext             jaxbContext = null;
         GeocodeRequestType      input = null;
         
@@ -45,19 +32,11 @@ public class GeocodingHandler implements OLSHandler {
             jaxbContext = JAXBContext.newInstance(GeocodeRequestType.class);
             
             Unmarshaller        unmarshaller = jaxbContext.createUnmarshaller();
-            SchemaFactory       schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-//            Schema              olsSchema = schemaFactory.newSchema(getClass().getClassLoader().getResource(arg0));
-            Schema              olsSchema = schemaFactory.newSchema(new File("/home/ugo/Lavoro/phoops/12I_CPO_TP/ELABORATI/workspace/geoserver/src/community/ols/src/main/xsd/olsAll.xsd"));
-
-            unmarshaller.setSchema(olsSchema);
-            
             JAXBElement<GeocodeRequestType>     jaxbElement = unmarshaller.unmarshal(request.getFirstChild(), GeocodeRequestType.class);
             
             input = jaxbElement.getValue();
         } catch (JAXBException e) {
             throw new OLSException("JAXB error", e);
-        } catch (SAXException e) {
-            throw new OLSException("SAX error", e);
         }
         
         JAXBElement<GeocodeResponseType>        output = provider.geocode(input);
@@ -82,4 +61,21 @@ public class GeocodingHandler implements OLSHandler {
         return domResponse;
     }
 
+    @Override
+    public OLSService getService() {
+        return OLSService.GEOCODING;
+    }
+
+    @Override
+    public void setServiceProvider(OLSServiceProvider provider) {
+        this.provider = (GeocodingServiceProvider)provider;
+    }
+
+    @Override
+    public void setActiveServiceProvider(OLSServiceProvider provider) {
+        if(provider.isServiceActive())
+            this.provider = (GeocodingServiceProvider)provider;
+    }
+    
+    
 }

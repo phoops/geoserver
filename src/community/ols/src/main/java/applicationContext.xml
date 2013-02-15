@@ -11,14 +11,29 @@
 	<bean id="olsLoader" class="it.phoops.geoserver.ols.OLSXStreamLoader">
 		<constructor-arg ref="resourceLoader" />
 	</bean>
-
+	
+	<!-- ols configuration bean. This is a service level facade to the configuration system -->
+    <bean id="ols" class="it.phoops.geoserver.ols.OLS">
+      <constructor-arg ref="geoServer"/>
+    </bean>
+    
+	<!-- this registers the above modules with the servlet context
+		 it is around to keep the struts app happy as we move away from 
+		 servlets  -->
+<!-- 	<bean id="olsRegisterar"
+		class="org.vfny.geoserver.global.GeoServerServletContextInitializer">
+		
+		<constructor-arg type="java.lang.String" value="OLS"/>
+ 		<constructor-arg ref="ols"/>
+ 	</bean> -->
+	
 	<bean id="geocodingHandler" class="it.phoops.geoserver.ols.geocoding.GeocodingHandler">
 	</bean>
 
     <bean id="reverseGeocodingHandler" class="it.phoops.geoserver.ols.geocoding.ReverseGeocodingHandler">
     </bean>
 
-	   <bean id="routingHandler" class="it.phoops.geoserver.ols.routing.RoutingHandler">
+    <bean id="routingHandler" class="it.phoops.geoserver.ols.routing.RoutingHandler">
     </bean>
 
     	<bean id="olsDispatcher" class="it.phoops.geoserver.ols.OLSDispatcher">

@@ -5,4 +5,5 @@ target
 .project
 *.class
 *.pyc
+src/web/app/solr/12I_CPO_TP/data
 

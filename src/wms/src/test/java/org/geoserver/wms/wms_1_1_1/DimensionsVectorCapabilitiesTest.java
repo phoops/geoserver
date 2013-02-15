@@ -1,5 +1,5 @@
-/* Copyright (c) 2001 - 2007 TOPP - www.openplans.org. All rights reserved.
- * This code is licensed under the GPL 2.0 license, availible at the root
+/* Copyright (c) 2001 - 2013 OpenPlans - www.openplans.org. All rights reserved.
+ * This code is licensed under the GPL 2.0 license, available at the root
  * application directory.
  */
 package org.geoserver.wms.wms_1_1_1;
@@ -252,7 +252,7 @@ public class DimensionsVectorCapabilitiesTest extends WMSDimensionsTestSupport {
         getCatalog().add(eoProduct);
         try {
             Document dom = dom(get("wms?request=getCapabilities&version=1.1.1"), false);
-            // print(dom);            
+            print(dom);            
             
             // check dimension has been declared
             assertXpathEvaluatesTo("1", "count(//Layer[Name[text() = 'EO Sample']]/Dimension)", dom);

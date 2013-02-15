@@ -23,8 +23,8 @@ public class OLSLoader extends LegacyServiceLoader<OLSInfo> {
         OLSInfoImpl ols = new OLSInfoImpl();
         ols.setId("ols");
 
-        Map<String, Object> props = reader.wms();
+//        Map<String, Object> props = reader.wms();
 
-        return null;
+        return ols;
     }
 }

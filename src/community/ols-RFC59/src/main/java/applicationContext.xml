@@ -6,6 +6,19 @@
 
 <beans>
 	<bean id="rfc59ServiceProvider" class="it.phoops.geoserver.ols.geocoding.rfc59.RFC59ServiceProvider">
+	   <property name="active" value="false" />
 	   <property name="descriptionKey" value="OLS.serviceProvider.geocoding.rfc59.description" />
-	</bean>
+       <property name="endpointAddress" value="http://webtrial.regione.toscana.it/normaws/Musume.jws?wsdl" />
+       <property name="algorithm" value="1" />
+       <property name="timeout" value="60000" />
+    </bean>
+
+	<!-- MOCK SERVICE PROVIDER -->
+<!--     <bean id="rfc59ServiceProvider" class="it.phoops.geoserver.ols.geocoding.rfc59.mock.RFC59ServiceProviderMock"> -->
+<!-- 	   <property name="active" value="false" /> -->
+<!-- 	   <property name="descriptionKey" value="OLS.serviceProvider.geocoding.rfc59.description" /> -->
+<!--        <property name="endpointAddress" value="http://webtrial.regione.toscana.it/normaws/Musume.jws?wsdl" /> -->
+<!--        <property name="algorithm" value="1" /> -->
+<!--        <property name="timeout" value="60000" /> -->
+<!--     </bean> -->
 </beans>

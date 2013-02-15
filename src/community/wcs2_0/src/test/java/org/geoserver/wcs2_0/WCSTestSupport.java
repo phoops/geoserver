@@ -1,5 +1,5 @@
-/* Copyright (c) 2001 - 2007 TOPP - www.openplans.org. All rights reserved.
- * This code is licensed under the GPL 2.0 license, availible at the root
+/* Copyright (c) 2001 - 2013 OpenPlans - www.openplans.org. All rights reserved.
+ * This code is licensed under the GPL 2.0 license, available at the root
  * application directory.
  */
 package org.geoserver.wcs2_0;
@@ -7,6 +7,7 @@ package org.geoserver.wcs2_0;
 import static org.custommonkey.xmlunit.XMLAssert.assertXpathEvaluatesTo;
 
 import java.awt.geom.AffineTransform;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
@@ -17,21 +18,22 @@ import java.util.Map;
 
 import javax.imageio.metadata.IIOMetadataNode;
 import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
 import junit.framework.Assert;
 
-import org.apache.xerces.dom.DOMInputImpl;
 import org.custommonkey.xmlunit.SimpleNamespaceContext;
 import org.custommonkey.xmlunit.XMLUnit;
 import org.custommonkey.xmlunit.XpathEngine;
+import org.geoserver.config.GeoServer;
 import org.geoserver.data.test.SystemTestData;
 import org.geoserver.test.GeoServerSystemTestSupport;
 import org.geoserver.wcs.CoverageCleanerCallback;
 import org.geoserver.wcs.WCSInfo;
-import org.geoserver.wcs2_0.WCS20Const;
 import org.geotools.coverage.grid.GridGeometry2D;
 import org.geotools.coverage.grid.io.imageio.geotiff.GeoTiffConstants;
 import org.geotools.data.DataUtilities;
@@ -46,6 +48,7 @@ import org.opengis.coverage.grid.GridGeometry;
 import org.opengis.referencing.operation.MathTransform;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
+import org.w3c.dom.ls.DOMImplementationLS;
 import org.w3c.dom.ls.LSInput;
 import org.w3c.dom.ls.LSResourceResolver;
 import org.xml.sax.SAXParseException;
@@ -97,11 +100,31 @@ public abstract class WCSTestSupport extends GeoServerSystemTestSupport {
         try {
             final SchemaFactory factory = SchemaFactory
                     .newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+            
             factory.setResourceResolver(new LSResourceResolver() {
+                
+                DOMImplementationLS dom;
+                
+                {
+                    try {
+                        // ok, this is ugly.. the only way I've found to create an InputLS without
+                        // having to really implement every bit of it is to create a DOMImplementationLS
+                        DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance(); 
+                        builderFactory.setNamespaceAware( true );
+                       
+                        DocumentBuilder builder = builderFactory.newDocumentBuilder();
+                        // fake xml to parse
+                        String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><empty></empty>";
+                        dom = (DOMImplementationLS) builder.parse(new ByteArrayInputStream(xml.getBytes())).getImplementation();
+                    } catch(Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                
                 @Override
                 public LSInput resolveResource(String type, String namespaceURI, String publicId,
                         String systemId, String baseURI) {
-
+                    
                     String localPosition = namespaceMap.get(namespaceURI);
                     if (localPosition != null) {
                         try {
@@ -112,7 +135,9 @@ public abstract class WCSTestSupport extends GeoServerSystemTestSupport {
                             if (file.exists()) {
                                 URL url = DataUtilities.fileToURL(file);
                                 systemId = url.toURI().toASCIIString();
-                                DOMInputImpl input = new DOMInputImpl(publicId, systemId, null);
+                                LSInput input = dom.createLSInput();
+                                input.setPublicId(publicId);
+                                input.setSystemId(systemId);
                                 return input;
                             }
                         } catch (Exception e) {
@@ -150,12 +175,12 @@ public abstract class WCSTestSupport extends GeoServerSystemTestSupport {
         testData.setUpDefaultRasterLayers();
         testData.setUpWcs10RasterLayers();
         testData.setUpWcs11RasterLayers();
+        
+        
     }
 
     @Override
     protected void onSetUp(SystemTestData testData) throws Exception {
-          // System.out.println("---- WCSTestSupport::doSetup ---> " + new Date());
-//        System.out.println("---- GeoServerBaseTestSupport::setUpLogging --->  " + new Date());
 
         super.onSetUp(testData);
 
@@ -166,10 +191,11 @@ public abstract class WCSTestSupport extends GeoServerSystemTestSupport {
         namespaces.put("ows", "http://www.opengis.net/ows/2.0");
         namespaces.put("xlink", "http://www.w3.org/1999/xlink");
         namespaces.put("int", "http://www.opengis.net/WCS_service-extension_interpolation/1.0");
+        namespaces.put("gmlcov", "http://www.opengis.net/gmlcov/1.0");
+        namespaces.put("swe", "http://www.opengis.net/swe/2.0");
         XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(namespaces));
         xpath = XMLUnit.newXpathEngine();
 
-        // System.out.println("---- WCSTestSupport::doSetup ---< " + new Date());
     }
 
     @Override
@@ -232,15 +258,6 @@ public abstract class WCSTestSupport extends GeoServerSystemTestSupport {
         assertXpathEvaluatesTo("1", "count(//wcs:ServiceMetadata/wcs:Extension[int:interpolationSupported='http://www.opengis.net/def/interpolation/OGC/1/cubic'])", dom);
     }
 
-    // TODO: re-enable when we have subsetting support in GetCoverage
-    // @Test
-    // public void testBBoxRequest() throws Exception {
-    // Document dom = getAsDOM("wcs?request=GetCoverage&service=WCS&version=2.0.1&coverageId=" +
-    // getLayerId(TASMANIA_BM) + "&subset=lon(-10,10)&subset=lat(-20,20)");
-    // print(dom);
-    //
-    // // checkFullCapabilitiesDocument(dom);
-    // }
     /**
      * Gets a TIFFField node with the given tag number. This is done by searching for a TIFFField
      * with attribute number whose value is the specified tag value.
@@ -266,6 +283,20 @@ public abstract class WCSTestSupport extends GeoServerSystemTestSupport {
     @Override
     protected String getLogConfiguration() {
         return "/DEFAULT_LOGGING.properties";
+    }
+
+    protected void setInputLimit(int kbytes) {
+        GeoServer gs = getGeoServer();
+        WCSInfo info = gs.getService(WCSInfo.class);
+        info.setMaxInputMemory(kbytes);
+        gs.save(info);
+    }
+
+    protected void setOutputLimit(int kbytes) {
+        GeoServer gs = getGeoServer();
+        WCSInfo info = gs.getService(WCSInfo.class);
+        info.setMaxOutputMemory(kbytes);
+        gs.save(info);
     }
 
     /**

@@ -1,7 +1,11 @@
 package it.phoops.geoserver.ols.geocoding.rfc59;
 
+import it.phoops.geoserver.ols.OLSAbstractServiceProvider;
 import it.phoops.geoserver.ols.OLSException;
+import it.phoops.geoserver.ols.OLSService;
 import it.phoops.geoserver.ols.geocoding.GeocodingServiceProvider;
+import it.phoops.geoserver.ols.geocoding.rfc59.component.RFC59Tab;
+import it.phoops.geoserver.ols.geocoding.rfc59.component.RFC59TabFactory;
 import it.toscana.regione.normaws.AmbiguitaIndItem;
 import it.toscana.regione.normaws.DatiGeoreferenziazioneInd;
 import it.toscana.regione.normaws.DatiNormalizzazioneInd;
@@ -12,10 +16,11 @@ import it.toscana.regione.normaws.MusumeSoapBindingStub;
 import it.toscana.regione.normaws.RispostaNormalizzataType;
 
 import java.math.BigInteger;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.rmi.RemoteException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Properties;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.rpc.ServiceException;
@@ -36,80 +41,23 @@ import net.opengis.www.xls.Pos;
 import net.opengis.www.xls.Street;
 import net.opengis.www.xls.StreetAddress;
 
-public class RFC59ServiceProvider implements GeocodingServiceProvider {
-    public enum Algorithm {
-        TERM_QUERIES("1"),
-        FUZZY_QUERIES("2"),
-        RADIX("3");
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.ResourceModel;
+import org.geoserver.config.ServiceInfo;
 
-        private String code;
+public class RFC59ServiceProvider extends OLSAbstractServiceProvider implements GeocodingServiceProvider {
+    public static final DataSource DATA_SOURCE = DataSource.REGIONE_TOSCANA;
+    public static final String COUNTRY_CODE = "IT";
 
-        Algorithm(String code) {
-            this.code = code;
-        }
-
-        @Override
-        public String toString() {
-            return code;
-        }
-    };
-
-    public enum DataSource {
-        REGIONE_TOSCANA("1"),
-        OTHER("2");
-
-        private String code;
-
-        DataSource(String code) {
-            this.code = code;
-        }
-
-        @Override
-        public String toString() {
-            return code;
-        }
-    };
+    // Properties names
+    public static final String  PN_ENDPOINT_ADDRESS = "OLS.serviceProvider.geocoding.rfc59.service.endpointAddress";
+    public static final String  PN_GEOCODING_ALGORITHM = "OLS.serviceProvider.geocoding.rfc59.algorithm";
+    public static final String  PN_TIMEOUT = "OLS.serviceProvider.geocoding.rfc59.service.timeout";
+    public static final String  PN_ACTIVE_SERVICE = "OLS.serviceProvider.service.active";
     
-    public enum ResponseType {
-        GEOCODING_OK("0"),
-        UNKNOWN_ADDRESS("1"),
-        UNKNOWN_MUNICIPALITY("2"),
-        INPUT_PARAMETER_ERROR("3"),
-        AMBIGUOUS_MUNICIPALITY("6"),
-        AMBIGUOUS_ADDRESS("7"),
-        MUNICIPALITY_DATA_ONLY("8"),
-        DATA_ACCESS_ERROR("9");
-        
-        private String code;
-        static private Map<String,ResponseType> responseTypes = null;
-
-        ResponseType(String code) {
-            this.code = code;
-        }
-
-        @Override
-        public String toString() {
-            return code;
-        }
-        
-        public static ResponseType decode(String code) {
-            if (responseTypes == null) {
-                synchronized(ResponseType.class) {
-                    if (responseTypes == null) {
-                        responseTypes = new HashMap<String,ResponseType>();
-                        
-                        for (ResponseType pivot : ResponseType.values()) {
-                            responseTypes.put(pivot.toString(), pivot);
-                        }
-                    }
-                }
-            }
-            
-            return responseTypes.get(code);
-        }
-    };
-
-    private String descriptionKey;
+    private String      descriptionKey;
+    private Properties  properties = new Properties();
 
     @Override
     public String getDescriptionKey() {
@@ -119,6 +67,83 @@ public class RFC59ServiceProvider implements GeocodingServiceProvider {
     public void setDescriptionKey(String description) {
         this.descriptionKey = description;
     }
+    
+    public String getEndpointAddress() {
+        return properties.getProperty(PN_ENDPOINT_ADDRESS);
+    }
+
+    public void setEndpointAddress(String endpointAddress) {
+        properties.setProperty(PN_ENDPOINT_ADDRESS, endpointAddress);
+    }
+
+    public String getAlgorithm() {
+        return properties.getProperty(PN_GEOCODING_ALGORITHM);
+    }
+
+    public void setAlgorithm(String algorithm) {
+        properties.setProperty(PN_GEOCODING_ALGORITHM, algorithm);
+    }
+
+    public String getTimeout() {
+        return properties.getProperty(PN_TIMEOUT);
+    }
+
+    public void setTimeout(String timeout) {
+        properties.setProperty(PN_TIMEOUT, timeout);
+    }
+    
+    public String getActive(){
+        return properties.getProperty(PN_ACTIVE_SERVICE);
+    }
+    
+    public void setActive(String activeService){
+        properties.setProperty(PN_ACTIVE_SERVICE, activeService);
+    }
+
+    @Override
+    public OLSService getServiceType() {
+        return OLSService.GEOCODING;
+    }
+
+    @Override
+    public Properties getProperties() {
+        return properties;
+    }
+
+        @Override
+        public ITab getTab() {
+                IModel<String> title = new ResourceModel("RFC59 ", "RFC59");
+                return RFC59TabFactory.getRFC59TabFactory().getRFC59Tab(title);
+        }
+
+        @Override
+        public void setPropertiesTab(ITab rfc59Tab) {
+                ((RFC59Tab)rfc59Tab).setUrlRFC59(this.getEndpointAddress());
+                ((RFC59Tab)rfc59Tab).setTimeoutRFC59(this.getTimeout());
+                Algorithm algorithm = Algorithm.get(this.getAlgorithm());
+                ((RFC59Tab)rfc59Tab).setCodeAlgorithmSelected(Integer.parseInt(algorithm.getCode()));
+                ((RFC59Tab)rfc59Tab).setActiveRFC59(this.getActive());
+       }
+
+        @Override
+    	public void handleServiceChange(ServiceInfo service,
+    			List<String> propertyNames, List<Object> oldValues,
+    			List<Object> newValues) {
+                String active = ((RFC59Tab)getTab()).getActiveRFC59();
+                String timeout = ((RFC59Tab)getTab()).getTimeoutRFC59();
+    		String url = ((RFC59Tab)getTab()).getUrlRFC59();
+    		String algorithm = ((RFC59Tab)getTab()).getSelectedAlgorithm().getCode();
+    		
+    		setEndpointAddress(url);
+    		setTimeout(timeout);
+    		setAlgorithm(algorithm);
+    		setActive(active);
+    	}
+        
+        @Override
+        public boolean isServiceActive() {
+            return Boolean.parseBoolean(this.getActive());
+        }
 
     @Override
     public JAXBElement<GeocodeResponseType> geocode(GeocodeRequestType input) throws OLSException {
@@ -133,6 +158,7 @@ public class RFC59ServiceProvider implements GeocodingServiceProvider {
         StreetAddress                                           streetAddress;
         List<Street>                                            streets;
         Street                                                  street;
+        String                                                  streetName;
         JAXBElement<? extends AbstractStreetLocatorType>        streetLocator;
         BuildingLocatorType                                     buildingLocator;
         String                                                  buildingNumber;
@@ -152,7 +178,7 @@ public class RFC59ServiceProvider implements GeocodingServiceProvider {
 
         for (AddressType address : input.getAddresses()) {
             // We manage only requests regarding Italy (moreover, Tuscany...)
-            if (!"IT".equalsIgnoreCase(address.getCountryCode())) {
+            if (!COUNTRY_CODE.equalsIgnoreCase(address.getCountryCode())) {
                 throw new OLSException("Unsupported country code: " + address.getCountryCode());
             }
             
@@ -186,9 +212,25 @@ public class RFC59ServiceProvider implements GeocodingServiceProvider {
                 throw new OLSException("Street missing in geocoding request");
             }
             
-            // Check for street name presence (structured data ignored)
+            // Check for street name presence
             if (street.getValue() == null || street.getValue().equals("")) {
-                throw new OLSException("Street name missing in geocoding request");
+                // Use structured data
+                if (street.getOfficialName() == null || street.getOfficialName().equals("")) {
+                    throw new OLSException("Street name missing in geocoding request");
+                }
+                
+                streetName = street.getOfficialName();
+                
+                if (street.getTypePrefix() != null && !street.getTypePrefix().equals("")) {
+                    streetName = street.getTypePrefix() + " " + streetName;
+                }
+                
+                if (street.getTypeSuffix() != null && !street.getTypeSuffix().equals("")) {
+                    streetName += street.getTypeSuffix();
+                }
+            } else {
+                // Use free form data
+                streetName = street.getValue();
             }
             
             // Check for building number (optional)
@@ -244,25 +286,27 @@ public class RFC59ServiceProvider implements GeocodingServiceProvider {
             // Lazy bind to web service
             if (binding == null) {
                 try {
-                    binding = (MusumeSoapBindingStub) new MusumeServiceLocator().getMusume();
+                    binding = (MusumeSoapBindingStub) new MusumeServiceLocator().getMusume(new URL(getEndpointAddress()));
                     // Time out after a minute
-                    binding.setTimeout(60000);
+                    binding.setTimeout(Integer.valueOf(getTimeout()));
                 } catch (ServiceException e) {
                     throw new OLSException("JAX-RPC error: " + e.getLocalizedMessage(), e);
+                } catch (MalformedURLException e) {
+                    throw new OLSException("Malformed URL error: " + e.getLocalizedMessage(), e);
                 }
             }
 
             try {
                 // Call RFC59 web service
-                rispostaNormalizzata = binding.richiesta(Algorithm.FUZZY_QUERIES.toString(),
-                        street.getValue() + (buildingNumber == null ? "" : ", " + buildingNumber), municipality, countrySecondarySubdivision,
-                        address.getPostalCode(), DataSource.REGIONE_TOSCANA.toString());
+                rispostaNormalizzata = binding.richiesta(Algorithm.get(getAlgorithm()).toString(),
+                        streetName + (buildingNumber == null ? "" : ", " + buildingNumber), municipality, countrySecondarySubdivision,
+                        address.getPostalCode(), DATA_SOURCE.toString());
 
                 listItem = of.createGeocodeResponseList();
                 listItem.setNumberOfGeocodedAddresses(BigInteger.ZERO);
                 geocodedAddresses = listItem.getGeocodedAddresses();
                 
-                switch (ResponseType.decode(rispostaNormalizzata.getTipoRispostaNorm())) {
+                switch (ResponseType.get(rispostaNormalizzata.getTipoRispostaNorm())) {
                 case GEOCODING_OK:
                     listItem.setNumberOfGeocodedAddresses(BigInteger.ONE);
                     indirizzoRiconosciuto = rispostaNormalizzata.getIndirizzoRiconosciuto();
@@ -287,7 +331,7 @@ public class RFC59ServiceProvider implements GeocodingServiceProvider {
                     returnAddress = of.createAddressType();
                     datiNormalizzazioneInd = indirizzoRiconosciuto.getDatiNormalizzazioneInd();
                     
-                    returnAddress.setCountryCode("IT");
+                    returnAddress.setCountryCode(COUNTRY_CODE);
                     places = returnAddress.getPlaces();
                     
                     Place place = of.createPlace();
@@ -329,7 +373,7 @@ public class RFC59ServiceProvider implements GeocodingServiceProvider {
                     geocodedAddress.setAddress(returnAddress);
                     
                     geocodeMatchCode = of.createGeocodeMatchCode();
-                    geocodeMatchCode.setMatchType("RFC59-" + Algorithm.FUZZY_QUERIES);
+                    geocodeMatchCode.setMatchType("RFC59-" + getAlgorithm());
                     geocodeMatchCode.setAccuracy(new Float(1));
                     
                     geocodedAddress.setGeocodeMatchCode(geocodeMatchCode);
@@ -366,12 +410,12 @@ public class RFC59ServiceProvider implements GeocodingServiceProvider {
                         geocodedAddress.setPoint(point);
                         returnAddress = of.createAddressType();
                         
-                        returnAddress.setCountryCode("IT");
+                        returnAddress.setCountryCode(COUNTRY_CODE);
                         
                         streetAddress = of.createStreetAddress();
                         street = of.createStreet();
                         
-                        if (ambiguitaInd.getCivico() != null && !ambiguitaInd.getCivico().equals("")) {
+                        if (ambiguitaInd.getCivico() != null && !ambiguitaInd.getCivico().equals("") && !ambiguitaInd.getCivico().equals("0")) {
                             street.setValue(ambiguitaInd.getIndirizzo() + ", " + ambiguitaInd.getCivico());
                         } else {
                             street.setValue(ambiguitaInd.getIndirizzo());
@@ -384,7 +428,7 @@ public class RFC59ServiceProvider implements GeocodingServiceProvider {
                         geocodedAddress.setAddress(returnAddress);
                         
                         geocodeMatchCode = of.createGeocodeMatchCode();
-                        geocodeMatchCode.setMatchType("RFC59-" + Algorithm.FUZZY_QUERIES);
+                        geocodeMatchCode.setMatchType("RFC59-" + getAlgorithm());
                         geocodeMatchCode.setAccuracy(new Float(0));
                         
                         geocodedAddress.setGeocodeMatchCode(geocodeMatchCode);
@@ -412,7 +456,7 @@ public class RFC59ServiceProvider implements GeocodingServiceProvider {
                     geocodedAddress.setPoint(point);
                     returnAddress = of.createAddressType();
                     
-                    returnAddress.setCountryCode("IT");
+                    returnAddress.setCountryCode(COUNTRY_CODE);
                     places = returnAddress.getPlaces();
                     
                     place = of.createPlace();
@@ -448,7 +492,7 @@ public class RFC59ServiceProvider implements GeocodingServiceProvider {
                     geocodedAddress.setAddress(returnAddress);
                     
                     geocodeMatchCode = of.createGeocodeMatchCode();
-                    geocodeMatchCode.setMatchType("RFC59-" + Algorithm.FUZZY_QUERIES);
+                    geocodeMatchCode.setMatchType("RFC59-" + getAlgorithm());
                     geocodeMatchCode.setAccuracy(new Float(1));
                     
                     geocodedAddress.setGeocodeMatchCode(geocodeMatchCode);

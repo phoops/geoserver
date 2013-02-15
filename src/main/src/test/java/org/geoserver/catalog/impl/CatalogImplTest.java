@@ -1,4 +1,4 @@
-/* Copyright (c) 2012 TOPP - www.openplans.org. All rights reserved.
+/* Copyright (c) 2001 - 2013 OpenPlans - www.openplans.org. All rights reserved.
  * This code is licensed under the GPL 2.0 license, available at the root
  * application directory.
  */
@@ -61,6 +61,7 @@ import org.opengis.filter.MultiValuedFilter.MatchAction;
 import org.opengis.filter.sort.SortBy;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -1831,8 +1832,9 @@ public class CatalogImplTest {
     
     @Test
     public void testLayerGroupType() {
+        addLayer();
         LayerGroupInfo lg2 = catalog.getFactory().createLayerGroup();
-        lg2.setWorkspace(catalog.getDefaultWorkspace());
+        lg2.setWorkspace(null);
         lg2.setName("layerGroup2");
         lg2.setMode(LayerGroupInfo.Mode.NAMED);
         lg2.getLayers().add(l);
@@ -1853,8 +1855,9 @@ public class CatalogImplTest {
     
     @Test
     public void testLayerGroupRootLayer() {
+        addLayer();
         LayerGroupInfo lg2 = catalog.getFactory().createLayerGroup();
-        lg2.setWorkspace(catalog.getDefaultWorkspace());
+        lg2.setWorkspace(null);
         lg2.setName("layerGroup2");
         lg2.getLayers().add(l);
         lg2.getStyles().add(s);        
@@ -1914,6 +1917,8 @@ public class CatalogImplTest {
     
     @Test
     public void testLayerGroupRenderingLayers() {
+        addDataStore();
+        addNamespace();
         FeatureTypeInfo ft1, ft2, ft3;
         catalog.add(ft1 = newFeatureType("ft1", ds));
         catalog.add(ft2 = newFeatureType("ft2", ds));
@@ -1967,8 +1972,8 @@ public class CatalogImplTest {
         lg2.setMode(LayerGroupInfo.Mode.EO);
         assertEquals(1, lg2.layers().size());
         assertEquals(1, lg2.styles().size());
-        assertEquals(l, lg2.layers().get(0));
-        assertEquals(s, lg2.styles().get(0));        
+        assertEquals(l, lg2.layers().iterator().next());
+        assertEquals(s, lg2.styles().iterator().next());        
     }
     
     static class TestListener implements CatalogListener {

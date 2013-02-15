@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 
- Copyright (c) 2012 TOPP - www.openplans.org. All rights reserved.
+ Copyright (c) 2001 - 2013 OpenPlans - www.openplans.org. All rights reserved.
  This code is licensed under the GPL 2.0 license, available at the root
  application directory.
  -->
@@ -301,6 +301,15 @@
     <property name="icon" value="img/icons/geosilk/page_white_raster.png" />
     <property name="componentClass"
       value="org.geoserver.web.data.store.raster.GeoTIFFRasterEditPanel" />
+  </bean>
+
+  <bean id="imageMosaicStorePanel" class="org.geoserver.web.data.resource.DataStorePanelInfo">
+    <property name="id" value="imagemosaicRaster" />
+    <property name="factoryClass" value="org.geotools.gce.imagemosaic.ImageMosaicFormat" />
+    <property name="iconBase" value="org.geoserver.web.GeoServerApplication" />
+    <property name="icon" value="img/icons/geosilk/page_white_raster.png" />
+    <property name="componentClass"
+      value="org.geoserver.web.data.store.raster.ImageMosaicRasterEditPanel" />
   </bean>
 
   <bean id="arcGridStorePanel" class="org.geoserver.web.data.resource.DataStorePanelInfo">

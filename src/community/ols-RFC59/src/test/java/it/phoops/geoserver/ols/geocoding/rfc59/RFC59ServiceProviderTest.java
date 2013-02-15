@@ -22,6 +22,9 @@ public class RFC59ServiceProviderTest {
     @Before
     public void setUp() throws Exception {
         serviceProvider = (RFC59ServiceProvider) new RFC59ServiceProvider();
+        serviceProvider.setEndpointAddress("http://webtrial.regione.toscana.it/normaws/Musume.jws?wsdl");
+        serviceProvider.setTimeout("60000");
+        serviceProvider.setAlgorithm("2");
     }
     
     @Test

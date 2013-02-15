@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GeocodeRequest xmlns="http://www.opengis.net/xls">
+	<BadAddress countryCode="IT">
+		<StreetAddress>
+			<Street>Via Roma</Street>
+		</StreetAddress>
+		<Place type="Municipality">Scandicci</Place>
+		<Place type="CountrySecondarySubdivision">FI</Place>
+		<PostalCode>50018</PostalCode>
+	</BadAddress>
+</GeocodeRequest>

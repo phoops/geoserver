@@ -1,7 +1,8 @@
 package it.phoops.geoserver.ols;
 
-import net.opengis.www.xls.GeocodeRequestType;
+import java.util.Properties;
 
 public interface OLSServiceProvider {
-    public abstract String getDescriptionKey();
+    public abstract OLSService getServiceType();
+    public abstract boolean isServiceActive();
 }

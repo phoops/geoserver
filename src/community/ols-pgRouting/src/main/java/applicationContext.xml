@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+
+<beans>
+	<!-- Service Provider pgRouting -->
+	<bean id="pgRoutingServiceProvider" class="it.phoops.geoserver.ols.routing.pgrouting.PgRoutingServiceProvider">
+	   <property name="active" value="false" />
+	   <property name="descriptionKey" value="OLS.serviceProvider.geocoding.pgrouting.description" />
+       <property name="endpointAddress" value="http://lucene.apache.org/solr/" />
+       <property name="portNumber" value="8080" />
+       <property name="user" value="" />
+       <property name="password" value="" />
+       <property name="database" value="dbProva" />
+       <property name="algorithm" value="1" />
+    </bean>
+</beans>
