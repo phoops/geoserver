@@ -9,6 +9,7 @@ import static org.custommonkey.xmlunit.XMLAssert.assertXpathEvaluatesTo;
 import java.awt.geom.AffineTransform;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,6 +18,10 @@ import java.util.List;
 import java.util.Map;
 
 import javax.imageio.metadata.IIOMetadataNode;
+import javax.mail.MessagingException;
+import javax.mail.Multipart;
+import javax.mail.Session;
+import javax.mail.internet.MimeMessage;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -53,10 +58,12 @@ import org.w3c.dom.ls.LSInput;
 import org.w3c.dom.ls.LSResourceResolver;
 import org.xml.sax.SAXParseException;
 
+import com.mockrunner.mock.web.MockHttpServletResponse;
+
 /**
  * Base support class for wcs tests.
  * 
- * @author Andrea Aime, TOPP
+ * @author Andrea Aime, GeoSolutions
  * 
  */
 @SuppressWarnings("serial")
@@ -193,6 +200,7 @@ public abstract class WCSTestSupport extends GeoServerSystemTestSupport {
         namespaces.put("int", "http://www.opengis.net/WCS_service-extension_interpolation/1.0");
         namespaces.put("gmlcov", "http://www.opengis.net/gmlcov/1.0");
         namespaces.put("swe", "http://www.opengis.net/swe/2.0");
+        namespaces.put("gml", "http://www.opengis.net/gml/3.2");
         XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(namespaces));
         xpath = XMLUnit.newXpathEngine();
 
@@ -245,7 +253,7 @@ public abstract class WCSTestSupport extends GeoServerSystemTestSupport {
     protected void checkFullCapabilitiesDocument(Document dom) throws Exception {
         checkValidationErrors(dom, WCS20_SCHEMA);
         
-        // todo: check all the layers are here, the profiles, and so on
+        // TODO: check all the layers are here, the profiles, and so on
         
         // check that we have the crs extension
         assertXpathEvaluatesTo("1", "count(//ows:ServiceIdentification[ows:Profile='http://www.opengis.net/spec/WCS_service-extension_crs/1.0/conf/crs'])", dom);
@@ -361,6 +369,20 @@ public abstract class WCSTestSupport extends GeoServerSystemTestSupport {
     protected static double getScale(final Coverage coverage) {
         final AffineTransform gridToCRS = getAffineTransform(coverage);
         return (gridToCRS != null) ? XAffineTransform.getScale(gridToCRS) : Double.NaN;
+    }
+    
+    /**
+     * Parses a multipart message from the response
+     * @param response
+     * @return
+     * @throws MessagingException
+     * @throws IOException
+     */
+    protected Multipart getMultipart(MockHttpServletResponse response) throws MessagingException,
+            IOException {
+        MimeMessage body = new MimeMessage((Session) null, getBinaryInputStream(response));
+        Multipart multipart = (Multipart) body.getContent();
+        return multipart;
     }
 
     

@@ -1,0 +1,1028 @@
+<xs:schema version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="RouterInfo" type="routerInfo"/>
+  <xs:element name="RouterList" type="routerList"/>
+  <xs:element name="transitError" type="transitError"/>
+  <xs:element name="graphComponentPolygons" type="graphComponentPolygons"/>
+  <xs:element name="PatchCreationResponse" type="patchCreationResponse"/>
+  <xs:element name="patchResponse" type="patchResponse"/>
+  <xs:element name="PatchSet" type="patchSet"/>
+  <xs:element name="AgencyList" type="agencyList"/>
+  <xs:element name="modeList" type="modeList"/>
+  <xs:element name="RouteData" type="routeData"/>
+  <xs:element name="RouteDataList" type="routeDataList"/>
+  <xs:element name="RouteList" type="routeList"/>
+  <xs:element name="StopList" type="stopList"/>
+  <xs:element name="StopTimeList" type="stopTimeList"/>
+  <xs:element name="BikeRentalStationList" type="bikeRentalStationList"/>
+  <xs:element name="graphMetadata" type="graphMetadata"/>
+  <xs:element name="response" type="response"/>
+  <xs:element name="serverInfo" type="serverInfo"/>
+  <xs:element name="AlertPatch" type="alertPatch"/>
+  <xs:element name="RouteVariant" type="routeVariant"/>
+  <xs:element name="AgencyAndId" type="agencyAndIdType"/>
+  <xs:element name="Agency" type="agencyType"/>
+  <xs:element name="MyMap" type="mapType"/>
+  <xs:element name="route" type="routeType"/>
+  <xs:element name="Stop" type="stopType"/>
+  <xs:element name="trip" type="tripType"/>
+  <xs:complexType name="geometry" abstract="true">
+    <xs:sequence>
+      <xs:element name="SRID" type="xs:int" minOccurs="1"/>
+      <xs:element name="userData" type="xs:anyType" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="agencyAndId">
+    <xs:sequence>
+      <xs:element name="agencyId" type="xs:string" minOccurs="0"/>
+      <xs:element name="id" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:simpleType name="absoluteDirection">
+    <xs:annotation>
+      <xs:documentation>
+        <![CDATA[An absolute cardinal or intermediate direction.]]>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="NORTH"/>
+      <xs:enumeration value="NORTHEAST"/>
+      <xs:enumeration value="EAST"/>
+      <xs:enumeration value="SOUTHEAST"/>
+      <xs:enumeration value="SOUTH"/>
+      <xs:enumeration value="SOUTHWEST"/>
+      <xs:enumeration value="WEST"/>
+      <xs:enumeration value="NORTHWEST"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="itinerary">
+    <xs:annotation>
+      <xs:documentation>
+        <![CDATA[An Itinerary is one complete way of getting from the start location to the end location.]]>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="duration" type="xs:long" minOccurs="1">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[Duration of the trip on this itinerary, in milliseconds.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="startTime" type="xs:dateTime" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[Time that the trip departs.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="endTime" type="xs:dateTime" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[Time that the trip arrives.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="walkTime" type="xs:long" minOccurs="1">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[How much time is spent walking, in seconds.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="transitTime" type="xs:long" minOccurs="1">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[How much time is spent on transit, in seconds.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="waitingTime" type="xs:long" minOccurs="1">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[How much time is spent waiting for transit to arrive, in seconds.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="walkDistance" type="xs:double" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[How far the user has to walk, in meters.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="elevationLost" type="xs:double" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[How much elevation is lost, in total, over the course of the trip, in meters. As an example,
+a trip that went from the top of Mount Everest straight down to sea level, then back up K2,
+then back down again would have an elevationLost of Everest + K2.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="elevationGained" type="xs:double" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[How much elevation is gained, in total, over the course of the trip, in meters. See
+elevationLost.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="transfers" type="xs:int" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[The number of transfers this trip has.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="fare" type="fare" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[The cost of this trip]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="legs" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[A list of Legs. Each Leg is either a walking (cycling, car) portion of the trip, or a transit
+trip on a particular vehicle. So a trip where the use walks to the Q train, transfers to the
+6, then walks to their destination, has four legs.]]>
+          </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="leg" type="leg" minOccurs="0" maxOccurs="unbounded">
+              <xs:annotation>
+                <xs:documentation>
+                  <![CDATA[A list of Legs. Each Leg is either a walking (cycling, car) portion of the trip, or a transit
+trip on a particular vehicle. So a trip where the use walks to the Q train, transfers to the
+6, then walks to their destination, has four legs.]]>
+                </xs:documentation>
+              </xs:annotation>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="tooSloped" type="xs:boolean" minOccurs="1">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[This itinerary has a greater slope than the user requested (but there are no possible
+itineraries with a good slope).]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="leg">
+    <xs:annotation>
+      <xs:documentation>
+        <![CDATA[One leg of a trip -- that is, a temporally continuous piece of the journey that takes place on a
+particular vehicle (or on foot).]]>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="startTime" type="xs:dateTime" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[The date and time this leg begins.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="endTime" type="xs:dateTime" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[The date and time this leg ends.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="distance" type="xs:double" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[The distance traveled while traversing the leg in meters.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="from" type="place" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[The Place where the leg originates.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="to" type="place" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[The Place where the leg begins.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="intermediateStops" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[For transit legs, intermediate stops between the Place where the leg originates and the Place where the leg ends.
+For non-transit legs, null.
+This field is optional i.e. it is always null unless "showIntermediateStops" parameter is set to "true" in the planner request.]]>
+          </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="stop" type="place" minOccurs="0" maxOccurs="unbounded">
+              <xs:annotation>
+                <xs:documentation>
+                  <![CDATA[For transit legs, intermediate stops between the Place where the leg originates and the Place where the leg ends.
+For non-transit legs, null.
+This field is optional i.e. it is always null unless "showIntermediateStops" parameter is set to "true" in the planner request.]]>
+                </xs:documentation>
+              </xs:annotation>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="legGeometry" type="encodedPolylineBean" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[The leg's geometry.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="steps" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[A series of turn by turn instructions used for walking, biking and driving.]]>
+          </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="walkSteps" type="walkStep" minOccurs="0" maxOccurs="unbounded">
+              <xs:annotation>
+                <xs:documentation>
+                  <![CDATA[A series of turn by turn instructions used for walking, biking and driving.]]>
+                </xs:documentation>
+              </xs:annotation>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="notes" type="note" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[Deprecated field formerly used for notes -- will be removed. See
+alerts]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="alerts" type="alert" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="duration" type="xs:long" minOccurs="1">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[The leg's duration in milliseconds]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="mode" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>
+          <![CDATA[The mode (e.g., <tt>Walk</tt>) used when traversing this leg.]]>
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="route" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>
+          <![CDATA[For transit legs, the route of the bus or train being used. For non-transit legs, the name of
+the street being traversed.]]>
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="agencyName" type="xs:string"/>
+    <xs:attribute name="agencyUrl" type="xs:string"/>
+    <xs:attribute name="agencyTimeZoneOffset" use="required" type="xs:int"/>
+    <xs:attribute name="routeColor" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>
+          <![CDATA[For transit leg, the route's (background) color (if one exists). For non-transit legs, null.]]>
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="routeId" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>
+          <![CDATA[For transit legs, the ID of the route.
+For non-transit legs, null.]]>
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="routeTextColor" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>
+          <![CDATA[For transit leg, the route's text color (if one exists). For non-transit legs, null.]]>
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="interlineWithPreviousLeg" type="xs:boolean">
+      <xs:annotation>
+        <xs:documentation>
+          <![CDATA[For transit legs, if the rider should stay on the vehicle as it changes route names.]]>
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="tripShortName" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>
+          <![CDATA[For transit leg, the trip's short name (if one exists). For non-transit legs, null.]]>
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="headsign" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>
+          <![CDATA[For transit legs, the headsign of the bus or train being used. For non-transit legs, null.]]>
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="agencyId" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>
+          <![CDATA[For transit legs, the ID of the transit agency that operates the service used for this leg.
+For non-transit legs, null.]]>
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="tripId" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>
+          <![CDATA[For transit legs, the ID of the trip.
+For non-transit legs, null.]]>
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="routeShortName" type="xs:string"/>
+    <xs:attribute name="routeLongName" type="xs:string"/>
+    <xs:attribute name="boardRule" type="xs:string"/>
+    <xs:attribute name="alightRule" type="xs:string"/>
+    <xs:attribute name="rentedBike" type="xs:boolean"/>
+  </xs:complexType>
+  <xs:complexType name="note">
+    <xs:sequence>
+      <xs:element name="text" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="place">
+    <xs:annotation>
+      <xs:documentation>
+        <![CDATA[A Place is where a journey starts or ends, or a transit stop along the way.]]>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="name" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[For transit stops, the name of the stop. For points of interest, the name of the POI.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="stopId" type="agencyAndId" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[The ID of the stop. This is often something that users don't care about.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="stopCode" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[The "code" of the stop. Depending on the transit agency, this is often
+something that users care about.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="lon" type="xs:double" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[The longitude of the place.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="lat" type="xs:double" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[The latitude of the place.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="arrival" type="xs:dateTime" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[The time the rider will arrive at the place.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="departure" type="xs:dateTime" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[The time the rider will depart the place.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="orig" type="xs:string"/>
+    <xs:attribute name="zoneId" type="xs:string"/>
+  </xs:complexType>
+  <xs:simpleType name="relativeDirection">
+    <xs:annotation>
+      <xs:documentation>
+        <![CDATA[Represents a turn direction, relative to the current heading.
+CIRCLE_CLOCKWISE and CIRCLE_CLOCKWISE are used to represent traffic circles.]]>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="HARD_LEFT"/>
+      <xs:enumeration value="LEFT"/>
+      <xs:enumeration value="SLIGHTLY_LEFT"/>
+      <xs:enumeration value="CONTINUE"/>
+      <xs:enumeration value="SLIGHTLY_RIGHT"/>
+      <xs:enumeration value="RIGHT"/>
+      <xs:enumeration value="HARD_RIGHT"/>
+      <xs:enumeration value="CIRCLE_CLOCKWISE"/>
+      <xs:enumeration value="CIRCLE_COUNTERCLOCKWISE"/>
+      <xs:enumeration value="ELEVATOR"/>
+      <xs:enumeration value="UTURN_LEFT"/>
+      <xs:enumeration value="UTURN_RIGHT"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="routerInfo">
+    <xs:sequence>
+      <xs:element name="routerId" type="xs:string" minOccurs="0"/>
+      <xs:element name="polygon" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="routerList">
+    <xs:sequence>
+      <xs:element name="routerInfo" type="routerInfo" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="tripPlan">
+    <xs:annotation>
+      <xs:documentation>
+        <![CDATA[A TripPlan is a set of ways to get from point A to point B at time T.]]>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="date" type="xs:dateTime" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[The time and date of travel]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="from" type="place" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[The origin]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="to" type="place" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[The destination]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="itineraries" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[A list of possible itineraries.]]>
+          </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="itinerary" type="itinerary" minOccurs="0" maxOccurs="unbounded">
+              <xs:annotation>
+                <xs:documentation>
+                  <![CDATA[A list of possible itineraries.]]>
+                </xs:documentation>
+              </xs:annotation>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="walkStep">
+    <xs:annotation>
+      <xs:documentation>
+        <![CDATA[Represents one instruction in walking directions. Three examples from New York City:
+<p>
+Turn onto Broadway from W 57th St (coming from 7th Ave): <br/>
+distance = 100 (say) <br/>
+walkDirection = RIGHT <br/>
+streetName = Broadway <br/>
+everything else null/false <br/>
+</p><p>
+Now, turn from Broadway onto Central Park S via Columbus Circle <br/>
+distance = 200 (say) <br/>
+walkDirection = CIRCLE_COUNTERCLOCKWISE <br/>
+streetName = Central Park S <br/>
+exit = 1 (first exit) <br/>
+immediately everything else false <br/>
+</p><p>
+Instead, go through the circle to continue on Broadway <br/>
+distance = 100 (say) <br/>
+walkDirection = CIRCLE_COUNTERCLOCKWISE <br/>
+streetName = Broadway <br/>
+exit = 3 <br/>
+stayOn = true <br/>
+everything else false <br/>
+</p>]]>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="distance" type="xs:double" minOccurs="1">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[The distance in meters that this step takes.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="relativeDirection" type="relativeDirection" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[The relative direction of this step.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="streetName" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[The name of the street.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="absoluteDirection" type="absoluteDirection" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[The absolute direction of this step.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="exit" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[When exiting a highway or traffic circle, the exit name/number.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="stayOn" type="xs:boolean" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[Indicates whether or not a street changes direction at an intersection.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="bogusName" type="xs:boolean" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[The name of this street was generated by the system, so we should only display it once, and
+generally just display right/left directions]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="lon" type="xs:double" minOccurs="1">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[The longitude of start of the step]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="lat" type="xs:double" minOccurs="1">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[The latitude of start of the step]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="alerts" type="alert" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="elevation" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="plannerError">
+    <xs:annotation>
+      <xs:documentation>
+        <![CDATA[This API response element represents an error in trip planning.]]>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="id" type="xs:int" minOccurs="1"/>
+      <xs:element name="missing" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="noPath" type="xs:boolean" minOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="transitError">
+    <xs:sequence>
+      <xs:element name="message" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="graphComponent">
+    <xs:sequence>
+      <xs:element name="polygon" type="geometry" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="graphComponentPolygons">
+    <xs:sequence>
+      <xs:element name="components" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="components" type="graphComponent" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="patchCreationResponse">
+    <xs:sequence>
+      <xs:element name="status" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="patchResponse">
+    <xs:sequence>
+      <xs:element name="patches" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="AlertPatch" type="alertPatch" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="patchSet">
+    <xs:sequence>
+      <xs:element name="AlertPatch" type="alertPatch" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="agencyList">
+    <xs:sequence>
+      <xs:element name="Agency" type="agencyType" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="modeList">
+    <xs:sequence>
+      <xs:element name="modes" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="modes" type="TraverseMode" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="routeData">
+    <xs:sequence>
+      <xs:element name="id" type="agencyAndIdType" minOccurs="0"/>
+      <xs:element name="stops" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="stops" type="stopType" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="variants" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="variants" type="routeVariant" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="directions" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="directions" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="routeDataList">
+    <xs:sequence>
+      <xs:element name="RouteData" type="routeData" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="routeList">
+    <xs:sequence>
+      <xs:element name="route" type="routeType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="stopList">
+    <xs:sequence>
+      <xs:element name="stop" type="stopType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="stopTime">
+    <xs:sequence>
+      <xs:element name="trip" type="tripType" minOccurs="0"/>
+      <xs:element name="stop" type="stopType" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="time" use="required" type="xs:long">
+      <xs:annotation>
+        <xs:documentation>
+          <![CDATA[These are departure times, except where the stop is the last stop on a particular
+trip, in which case they are arrivals]]>
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="phase" type="xs:string"/>
+  </xs:complexType>
+  <xs:complexType name="stopTimeList">
+    <xs:sequence>
+      <xs:element name="route" type="routeType" minOccurs="0"/>
+      <xs:element name="stopTime" type="stopTime" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="bikeRentalStationList">
+    <xs:sequence>
+      <xs:element name="station" type="bikeRentalStation" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="graphMetadata">
+    <xs:sequence>
+      <xs:element name="lowerLeftLatitude" type="xs:double" minOccurs="1"/>
+      <xs:element name="upperRightLatitude" type="xs:double" minOccurs="1"/>
+      <xs:element name="upperRightLongitude" type="xs:double" minOccurs="1"/>
+      <xs:element name="lowerLeftLongitude" type="xs:double" minOccurs="1"/>
+      <xs:element name="minLatitude" type="xs:double" minOccurs="1">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[The bounding box of the graph, in decimal degrees. These are the old, deprecated
+names; the new names are the lowerLeft/upperRight.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="minLongitude" type="xs:double" minOccurs="1">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[The bounding box of the graph, in decimal degrees. These are the old, deprecated
+names; the new names are the lowerLeft/upperRight.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="maxLatitude" type="xs:double" minOccurs="1">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[The bounding box of the graph, in decimal degrees. These are the old, deprecated
+names; the new names are the lowerLeft/upperRight.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="maxLongitude" type="xs:double" minOccurs="1">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[The bounding box of the graph, in decimal degrees. These are the old, deprecated
+names; the new names are the lowerLeft/upperRight.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="transitModes" type="TraverseMode" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="centerLongitude" type="xs:double" minOccurs="1"/>
+      <xs:element name="centerLatitude" type="xs:double" minOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="response">
+    <xs:annotation>
+      <xs:documentation>
+        <![CDATA[Represents a trip planner response, will be serialized into XML or JSON by Jersey]]>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="requestParameters" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[A dictionary of the parameters provided in the request that triggered this response.]]>
+          </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="entry" minOccurs="0" maxOccurs="unbounded">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="key" minOccurs="1" type="xs:string"/>
+                  <xs:element name="value" minOccurs="1" type="xs:string"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="plan" type="tripPlan" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[The actual trip plan.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="error" type="plannerError" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            <![CDATA[The error (if any) that this response raised.]]>
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="serverInfo">
+    <xs:sequence>
+      <xs:element name="serverVersion" type="mavenVersion" minOccurs="0"/>
+      <xs:element name="cpuName" type="xs:string" minOccurs="0"/>
+      <xs:element name="nCores" type="xs:int" minOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="mavenVersion">
+    <xs:sequence>
+      <xs:element name="version" type="xs:string" minOccurs="0"/>
+      <xs:element name="qualifier" type="xs:string" minOccurs="0"/>
+      <xs:element name="commit" type="xs:string" minOccurs="0"/>
+      <xs:element name="major" type="xs:int" minOccurs="1"/>
+      <xs:element name="incremental" type="xs:int" minOccurs="1"/>
+      <xs:element name="minor" type="xs:int" minOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="bikeRentalStation">
+    <xs:attribute name="id" type="xs:string"/>
+    <xs:attribute name="name" type="xs:string"/>
+    <xs:attribute name="x" use="required" type="xs:double"/>
+    <xs:attribute name="y" use="required" type="xs:double"/>
+    <xs:attribute name="bikesAvailable" use="required" type="xs:int"/>
+    <xs:attribute name="spacesAvailable" use="required" type="xs:int"/>
+  </xs:complexType>
+  <xs:complexType name="fare">
+    <xs:sequence>
+      <xs:element name="fare" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="entry" minOccurs="0" maxOccurs="unbounded">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="key" minOccurs="1" type="fareType"/>
+                  <xs:element name="value" minOccurs="1" type="money"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:simpleType name="fareType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="regular"/>
+      <xs:enumeration value="student"/>
+      <xs:enumeration value="senior"/>
+      <xs:enumeration value="tram"/>
+      <xs:enumeration value="special"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="money">
+    <xs:sequence>
+      <xs:element name="cents" type="xs:int" minOccurs="1"/>
+      <xs:element name="currency" type="wrappedCurrency" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:simpleType name="TraverseMode">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="WALK"/>
+      <xs:enumeration value="BICYCLE"/>
+      <xs:enumeration value="CAR"/>
+      <xs:enumeration value="TRAM"/>
+      <xs:enumeration value="SUBWAY"/>
+      <xs:enumeration value="RAIL"/>
+      <xs:enumeration value="BUS"/>
+      <xs:enumeration value="FERRY"/>
+      <xs:enumeration value="CABLE_CAR"/>
+      <xs:enumeration value="GONDOLA"/>
+      <xs:enumeration value="FUNICULAR"/>
+      <xs:enumeration value="TRANSIT"/>
+      <xs:enumeration value="TRAINISH"/>
+      <xs:enumeration value="BUSISH"/>
+      <xs:enumeration value="BOARDING"/>
+      <xs:enumeration value="ALIGHTING"/>
+      <xs:enumeration value="TRANSFER"/>
+      <xs:enumeration value="STL"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="wrappedCurrency"/>
+  <xs:complexType name="abstractPatch" abstract="true">
+    <xs:sequence>
+      <xs:element name="alert" type="alert" minOccurs="0"/>
+      <xs:element name="id" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="alert">
+    <xs:sequence>
+      <xs:element name="effectiveStartDate" type="xs:dateTime" minOccurs="0"/>
+      <xs:element name="alertHeaderText" type="translatedString" minOccurs="0"/>
+      <xs:element name="alertUrl" type="translatedString" minOccurs="0"/>
+      <xs:element name="alertDescriptionText" type="translatedString" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="alertPatch">
+    <xs:complexContent>
+      <xs:extension base="abstractPatch">
+        <xs:sequence>
+          <xs:element name="route" type="agencyAndIdType" minOccurs="0"/>
+          <xs:element name="stop" type="agencyAndIdType" minOccurs="0"/>
+          <xs:element name="direction" type="xs:string" minOccurs="0"/>
+          <xs:element name="trip" type="agencyAndIdType" minOccurs="0"/>
+          <xs:element name="cancelled" type="xs:boolean" minOccurs="1"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="translatedString">
+    <xs:sequence>
+      <xs:element name="translations" type="mapType" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="routeVariant">
+    <xs:sequence>
+      <xs:element name="stop" type="agencyAndIdType" minOccurs="0"/>
+      <xs:element name="direction" type="xs:string" minOccurs="0"/>
+      <xs:element name="geometry" type="encodedPolylineBean" minOccurs="0"/>
+      <xs:element name="name" type="xs:string" minOccurs="0"/>
+      <xs:element name="trip" type="agencyAndIdType" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="agencyAndIdType">
+    <xs:attribute name="agency" type="xs:string"/>
+    <xs:attribute name="id" type="xs:string"/>
+  </xs:complexType>
+  <xs:complexType name="agencyType">
+    <xs:attribute name="id" type="xs:string"/>
+    <xs:attribute name="name" type="xs:string"/>
+    <xs:attribute name="url" type="xs:string"/>
+    <xs:attribute name="timezone" type="xs:string"/>
+    <xs:attribute name="lang" type="xs:string"/>
+    <xs:attribute name="phone" type="xs:string"/>
+    <xs:attribute name="fareUrl" type="xs:string"/>
+  </xs:complexType>
+  <xs:complexType name="entry">
+    <xs:attribute name="key" type="xs:string"/>
+    <xs:attribute name="value" type="xs:string"/>
+  </xs:complexType>
+  <xs:complexType name="mapType">
+    <xs:sequence>
+      <xs:element name="entry" type="entry" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="routeType">
+    <xs:sequence>
+      <xs:element name="id" type="agencyAndIdType" minOccurs="0"/>
+      <xs:element name="serviceId" type="agencyAndIdType" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="routeShortName" type="xs:string"/>
+    <xs:attribute name="routeLongName" type="xs:string"/>
+    <xs:attribute name="routeDesc" type="xs:string"/>
+    <xs:attribute name="routeUrl" type="xs:string"/>
+    <xs:attribute name="routeColor" type="xs:string"/>
+    <xs:attribute name="routeType" type="xs:int"/>
+    <xs:attribute name="routeTextColor" type="xs:string"/>
+    <xs:attribute name="routeBikesAllowed" type="xs:int"/>
+  </xs:complexType>
+  <xs:complexType name="stopType">
+    <xs:sequence>
+      <xs:element name="id" type="agencyAndIdType" minOccurs="0"/>
+      <xs:element name="route" type="agencyAndId" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="stopName" type="xs:string"/>
+    <xs:attribute name="stopLat" type="xs:double"/>
+    <xs:attribute name="stopLon" type="xs:double"/>
+    <xs:attribute name="stopCode" type="xs:string"/>
+    <xs:attribute name="stopDesc" type="xs:string"/>
+    <xs:attribute name="zoneId" type="xs:string"/>
+    <xs:attribute name="stopUrl" type="xs:string"/>
+    <xs:attribute name="locationType" type="xs:int"/>
+    <xs:attribute name="parentStation" type="xs:string"/>
+    <xs:attribute name="wheelchairBoarding" type="xs:int"/>
+    <xs:attribute name="direction" type="xs:string"/>
+  </xs:complexType>
+  <xs:complexType name="tripType">
+    <xs:sequence>
+      <xs:element name="serviceId" type="agencyAndIdType" minOccurs="0"/>
+      <xs:element name="routeId" type="agencyAndIdType" minOccurs="0"/>
+      <xs:element name="shapeId" type="agencyAndIdType" minOccurs="0"/>
+      <xs:element name="id" type="agencyAndIdType" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="tripShortName" type="xs:string"/>
+    <xs:attribute name="tripHeadsign" type="xs:string"/>
+    <xs:attribute name="directionId" type="xs:string"/>
+    <xs:attribute name="blockId" type="xs:string"/>
+    <xs:attribute name="wheelchairAccessible" type="xs:int"/>
+    <xs:attribute name="tripBikesAllowed" type="xs:int"/>
+  </xs:complexType>
+  <xs:complexType name="encodedPolylineBean">
+    <xs:sequence>
+      <xs:element name="length" type="xs:int" minOccurs="1"/>
+      <xs:element name="levels" type="xs:string" minOccurs="0"/>
+      <xs:element name="points" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bindings xmlns="http://java.sun.com/xml/ns/jaxb" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	version="2.0">
+
+	<bindings schemaLocation="ns0.xsd">
+		<schemaBindings>
+			<package name="it.phoops.geoserver.ols.routing.otp.client.ns0" />
+		</schemaBindings>
+		<bindings node="/xs:schema/xs:complexType[@name='fare']">
+			<class name="FareComplexType" />
+		</bindings>
+	</bindings>
+
+</bindings>

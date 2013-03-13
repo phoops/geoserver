@@ -275,6 +275,15 @@
       </modules>
     </profile>	
     <profile>
+      <id>kml2</id>
+      <activation>
+        <property><name>kml2</name></property>
+      </activation> 	  
+      <modules>
+        <module>kml2</module>
+      </modules>
+    </profile>	
+    <profile>
       <id>ols</id>
       <activation>
         <property><name>ols</name></property>

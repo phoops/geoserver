@@ -201,7 +201,19 @@ public class SOLRServiceProvider extends OLSAbstractServiceProvider implements G
                     }
                 } else {
                     // Use free form data
-                    solrQuery = "name:\"" + ClientUtils.escapeQueryChars(street.getValue()) + "\"";
+                    //check if the street contains a number
+//                    String[] stgStreet = street.getValue().split(",");
+//                    if(stgStreet.length > 1){
+//                        String stgNumeber = stgStreet[1];
+//                        try{
+//                            Integer.parseInt(stgNumeber.trim());
+//                        }catch(NumberFormatException e){
+//                            throw new OLSException("Cannot manage street number");
+//                        }
+//                        solrQuery = "name:\"" + ClientUtils.escapeQueryChars(stgStreet[0]) +"\"" + " AND number: \""+ ClientUtils.escapeQueryChars(stgNumeber.trim()) +"\"";
+//                    }else{
+                        solrQuery = "name:\"" + ClientUtils.escapeQueryChars(street.getValue()) + "\"";
+//                    }
                 }
             }
 
@@ -339,11 +351,11 @@ public class SOLRServiceProvider extends OLSAbstractServiceProvider implements G
                     street = of.createStreet();
                     
                     // building_number
-                    if (solrDoc.getFieldValue("building_number") != null && !solrDoc.getFieldValue("building_number").equals("") && !solrDoc.getFieldValue("building_number").equals("0")) {
-                        street.setValue(solrDoc.getFieldValue("name") + ", " + solrDoc.getFieldValue("building_number"));
-                    } else {
+//                    if (solrDoc.getFieldValue("building_number") != null && !solrDoc.getFieldValue("building_number").equals("") && !solrDoc.getFieldValue("building_number").equals("0")) {
+//                        street.setValue(solrDoc.getFieldValue("name") + ", " + solrDoc.getFieldValue("building_number"));
+//                    } else {
                         street.setValue(solrDoc.getFieldValue("name").toString());
-                    }
+//                    }
                     
                     streetAddress.getStreets().add(street);
                     

@@ -1,0 +1,1523 @@
+<wadl:application xmlns:wadl="http://wadl.dev.java.net/2009/02" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <wadl:doc xmlns:enunciate="http://enunciate.codehaus.org/" enunciate:generatedBy="Enunciate-1.25"/>
+  <wadl:grammars>
+    <wadl:include href="ns0.xsd"/>
+  </wadl:grammars>
+  <wadl:resources base="http://localhost:8080/opentripplanner-api-webapp">
+    <wadl:resource path="/ws/bike_rental">
+      <wadl:method name="GET">
+        <wadl:request>
+          <wadl:param name="lowerLeft" style="query"/>
+          <wadl:param name="upperRight" style="query"/>
+          <wadl:param name="routerId" style="query"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:representation mediaType="application/xml" element="BikeRentalStationList"/>
+          <wadl:representation mediaType="text/xml" element="BikeRentalStationList"/>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/legend.{format}">
+      <wadl:param name="format" style="template"/>
+      <wadl:method name="GET">
+        <wadl:request>
+          <wadl:param name="width" style="query"/>
+          <wadl:param name="height" style="query"/>
+          <wadl:param name="styles" style="query"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:representation mediaType="image/*"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/metadata">
+      <wadl:method name="GET">
+        <wadl:doc>
+          <![CDATA[Returns metadata about the graph -- presently, this is just the extent of the graph.]]>
+        </wadl:doc>
+        <wadl:request>
+          <wadl:param name="routerId" style="query">
+            <wadl:doc>
+              <![CDATA[Router ID used when in multiple graph mode. Unused in singleton graph mode.]]>
+            </wadl:doc>
+          </wadl:param>
+        </wadl:request>
+        <wadl:response>
+          <wadl:doc>
+            <![CDATA[Returns either an XML or a JSON document, depending on the HTTP Accept header of the
+client making the request.]]>
+          </wadl:doc>
+          <wadl:representation mediaType="application/xml" element="graphMetadata"/>
+          <wadl:representation mediaType="text/xml" element="graphMetadata"/>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/plan">
+      <wadl:method name="GET">
+        <wadl:request>
+          <wadl:param name="fromPlace" style="query">
+            <wadl:doc>
+              <![CDATA[The start location -- either latitude, longitude pair in degrees or a Vertex
+label. For example, <tt>40.714476,-74.005966</tt> or
+<tt>mtanyctsubway_A27_S</tt>.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="toPlace" style="query">
+            <wadl:doc>
+              <![CDATA[The end location (see fromPlace for format).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="intermediatePlaces" style="query">
+            <wadl:doc>
+              <![CDATA[An unordered list of intermediate locations to be visited (see the fromPlace for format).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="intermediatePlacesOrdered" style="query">
+            <wadl:doc>
+              <![CDATA[Whether or not the order of intermediate locations is to be respected (TSP vs series).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="date" style="query">
+            <wadl:doc>
+              <![CDATA[The date that the trip should depart (or arrive, for requests where arriveBy is true).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="time" style="query">
+            <wadl:doc>
+              <![CDATA[The time that the trip should depart (or arrive, for requests where arriveBy is true).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="routerId" style="query">
+            <wadl:doc>
+              <![CDATA[Router ID used when in multiple graph mode. Unused in singleton graph mode.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="arriveBy" style="query">
+            <wadl:doc>
+              <![CDATA[Whether the trip should depart or arrive at the specified date and time.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="wheelchair" style="query">
+            <wadl:doc>
+              <![CDATA[Whether the trip must be wheelchair accessible.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="maxWalkDistance" style="query">
+            <wadl:doc>
+              <![CDATA[The maximum distance (in meters) the user is willing to walk. Defaults to approximately 1/2 mile.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="walkSpeed" style="query">
+            <wadl:doc>
+              <![CDATA[The user's walking speed in meters/second. Defaults to approximately 3 MPH.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="bikeSpeed" style="query">
+            <wadl:doc>
+              <![CDATA[The user's biking speed in meters/second. Defaults to approximately 11 MPH, or 9.5 for bikeshare.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="triangleSafetyFactor" style="query">
+            <wadl:doc>
+              <![CDATA[For bike triangle routing, how much safety matters (range 0-1).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="triangleSlopeFactor" style="query">
+            <wadl:doc>
+              <![CDATA[For bike triangle routing, how much slope matters (range 0-1).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="triangleTimeFactor" style="query">
+            <wadl:doc>
+              <![CDATA[For bike triangle routing, how much time matters (range 0-1).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="optimize" style="query">
+            <wadl:doc>
+              <![CDATA[The set of characteristics that the user wants to optimize for. @See OptimizeType]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="mode" style="query">
+            <wadl:doc>
+              <![CDATA[The set of modes that a user is willing to use.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="minTransferTime" style="query">
+            <wadl:doc>
+              <![CDATA[The minimum time, in seconds, between successive trips on different vehicles.
+This is designed to allow for imperfect schedule adherence.  This is a minimum;
+transfers over longer distances might use a longer time.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="numItineraries" style="query">
+            <wadl:doc>
+              <![CDATA[The maximum number of possible itineraries to return.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="preferredRoutes" style="query">
+            <wadl:doc>
+              <![CDATA[The list of preferred routes.  The format is agency_route, so TriMet_100.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="unpreferredRoutes" style="query">
+            <wadl:doc>
+              <![CDATA[The list of unpreferred routes.  The format is agency_route, so TriMet_100.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="showIntermediateStops" style="query">
+            <wadl:doc>
+              <![CDATA[Whether intermediate stops -- those that the itinerary passes in a vehicle, but
+does not board or alight at -- should be returned in the response.  For example,
+on a Q train trip from Prospect Park to DeKalb Avenue, whether 7th Avenue and
+Atlantic Avenue should be included.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="bannedRoutes" style="query">
+            <wadl:doc>
+              <![CDATA[The list of banned routes.  The format is agency_route, so TriMet_100.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="transferPenalty" style="query">
+            <wadl:doc>
+              <![CDATA[An additional penalty added to boardings after the first.  The value is in OTP's
+internal weight units, which are roughly equivalent to seconds.  Set this to a high
+value to discourage transfers.  Of course, transfers that save significant
+time or walking will still be taken.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="maxTransfers" style="query">
+            <wadl:doc>
+              <![CDATA[The maximum number of transfers (that is, one plus the maximum number of boardings)
+that a trip will be allowed.  Larger values will slow performance, but could give
+better routes.  This is limited on the server side by the MAX_TRANSFERS value in
+org.opentripplanner.api.ws.Planner.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="batch" style="query">
+            <wadl:doc>
+              <![CDATA[If true, goal direction is turned off and a full path tree is built (specify only once)]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="startTransitStopId" style="query">
+            <wadl:doc>
+              <![CDATA[A transit stop required to be the first stop in the search]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="clampInitialWait" style="query">
+            <wadl:doc>
+              <![CDATA[When subtracting initial wait time, do not subtract more than this value, to prevent overly
+optimistic trips. Reasoning is that it is reasonable to delay a trip start 15 minutes to
+make a better trip, but that it is not reasonable to delay a trip start 15 hours; if that
+is to be done, the time needs to be included in the trip time. This number depends on the
+transit system; for transit systems where trips are planned around the vehicles, this number
+can be much higher. For instance, it's perfectly reasonable to delay one's trip 12 hours if
+one is taking a cross-country Amtrak train from Emeryville to Chicago. Has no effect in
+stock OTP, only in Analyst.
+
+A value of 0 (the default) disables.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="reverseOptimizeOnTheFly" style="query">
+            <wadl:doc>
+              <![CDATA[If true, this trip will be reverse-optimized on the fly. Otherwise, reverse-optimization
+will occur once a trip has been chosen (in Analyst, it will not be done at all).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="boardSlack" style="query"/>
+          <wadl:param name="alightSlack" style="query"/>
+          <wadl:param name="locale" style="query"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:representation mediaType="application/xml" element="response"/>
+          <wadl:representation mediaType="text/xml" element="response"/>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/raster">
+      <wadl:method name="GET">
+        <wadl:request>
+          <wadl:param name="x" style="query"/>
+          <wadl:param name="y" style="query"/>
+          <wadl:param name="width" style="query"/>
+          <wadl:param name="height" style="query"/>
+          <wadl:param name="resolution" style="query"/>
+          <wadl:param name="time" style="query"/>
+          <wadl:param name="format" style="query"/>
+          <wadl:param name="crs" style="query"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:representation mediaType="image/*"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/routers">
+      <wadl:method name="GET">
+        <wadl:doc>
+          <![CDATA[Returns a list of routers and their bounds.]]>
+        </wadl:doc>
+        <wadl:response>
+          <wadl:doc>
+            <![CDATA[a representation of the graphs and their geographic bounds, in JSON or XML depending
+on the Accept header in the HTTP request.]]>
+          </wadl:doc>
+          <wadl:representation mediaType="application/xml" element="RouterList"/>
+          <wadl:representation mediaType="text/xml" element="RouterList"/>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+      <wadl:method name="PUT">
+        <wadl:doc>
+          <![CDATA[Reload the graphs for all registered routerIds from disk.]]>
+        </wadl:doc>
+        <wadl:request>
+          <wadl:param name="path" style="query"/>
+          <wadl:param name="preEvict" style="query"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+      <wadl:method name="DELETE">
+        <wadl:doc>
+          <![CDATA[De-register all registered routerIds, evicting them from memory.]]>
+        </wadl:doc>
+        <wadl:response>
+          <wadl:representation mediaType="text/plain"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/serverinfo">
+      <wadl:method name="GET">
+        <wadl:response>
+          <wadl:representation mediaType="application/xml" element="serverInfo"/>
+          <wadl:representation mediaType="text/xml" element="serverInfo"/>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/wms">
+      <wadl:method name="GET">
+        <wadl:request>
+          <wadl:param name="version" style="query"/>
+          <wadl:param name="request" style="query"/>
+          <wadl:param name="layers" style="query"/>
+          <wadl:param name="styles" style="query"/>
+          <wadl:param name="srs" style="query"/>
+          <wadl:param name="crs" style="query"/>
+          <wadl:param name="bbox" style="query"/>
+          <wadl:param name="width" style="query"/>
+          <wadl:param name="height" style="query"/>
+          <wadl:param name="format" style="query"/>
+          <wadl:param name="transparent" style="query"/>
+          <wadl:param name="bgcolor" style="query"/>
+          <wadl:param name="exceptions" style="query"/>
+          <wadl:param name="resolution" style="query"/>
+          <wadl:param name="reproject" style="query"/>
+          <wadl:param name="timestamp" style="query"/>
+          <wadl:param name="fromPlace" style="query">
+            <wadl:doc>
+              <![CDATA[The start location -- either latitude, longitude pair in degrees or a Vertex
+label. For example, <tt>40.714476,-74.005966</tt> or
+<tt>mtanyctsubway_A27_S</tt>.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="toPlace" style="query">
+            <wadl:doc>
+              <![CDATA[The end location (see fromPlace for format).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="intermediatePlaces" style="query">
+            <wadl:doc>
+              <![CDATA[An unordered list of intermediate locations to be visited (see the fromPlace for format).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="intermediatePlacesOrdered" style="query">
+            <wadl:doc>
+              <![CDATA[Whether or not the order of intermediate locations is to be respected (TSP vs series).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="date" style="query">
+            <wadl:doc>
+              <![CDATA[The date that the trip should depart (or arrive, for requests where arriveBy is true).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="time" style="query">
+            <wadl:doc>
+              <![CDATA[The time that the trip should depart (or arrive, for requests where arriveBy is true).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="routerId" style="query">
+            <wadl:doc>
+              <![CDATA[Router ID used when in multiple graph mode. Unused in singleton graph mode.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="arriveBy" style="query">
+            <wadl:doc>
+              <![CDATA[Whether the trip should depart or arrive at the specified date and time.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="wheelchair" style="query">
+            <wadl:doc>
+              <![CDATA[Whether the trip must be wheelchair accessible.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="maxWalkDistance" style="query">
+            <wadl:doc>
+              <![CDATA[The maximum distance (in meters) the user is willing to walk. Defaults to approximately 1/2 mile.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="walkSpeed" style="query">
+            <wadl:doc>
+              <![CDATA[The user's walking speed in meters/second. Defaults to approximately 3 MPH.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="bikeSpeed" style="query">
+            <wadl:doc>
+              <![CDATA[The user's biking speed in meters/second. Defaults to approximately 11 MPH, or 9.5 for bikeshare.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="triangleSafetyFactor" style="query">
+            <wadl:doc>
+              <![CDATA[For bike triangle routing, how much safety matters (range 0-1).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="triangleSlopeFactor" style="query">
+            <wadl:doc>
+              <![CDATA[For bike triangle routing, how much slope matters (range 0-1).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="triangleTimeFactor" style="query">
+            <wadl:doc>
+              <![CDATA[For bike triangle routing, how much time matters (range 0-1).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="optimize" style="query">
+            <wadl:doc>
+              <![CDATA[The set of characteristics that the user wants to optimize for. @See OptimizeType]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="mode" style="query">
+            <wadl:doc>
+              <![CDATA[The set of modes that a user is willing to use.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="minTransferTime" style="query">
+            <wadl:doc>
+              <![CDATA[The minimum time, in seconds, between successive trips on different vehicles.
+This is designed to allow for imperfect schedule adherence.  This is a minimum;
+transfers over longer distances might use a longer time.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="numItineraries" style="query">
+            <wadl:doc>
+              <![CDATA[The maximum number of possible itineraries to return.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="preferredRoutes" style="query">
+            <wadl:doc>
+              <![CDATA[The list of preferred routes.  The format is agency_route, so TriMet_100.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="unpreferredRoutes" style="query">
+            <wadl:doc>
+              <![CDATA[The list of unpreferred routes.  The format is agency_route, so TriMet_100.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="showIntermediateStops" style="query">
+            <wadl:doc>
+              <![CDATA[Whether intermediate stops -- those that the itinerary passes in a vehicle, but
+does not board or alight at -- should be returned in the response.  For example,
+on a Q train trip from Prospect Park to DeKalb Avenue, whether 7th Avenue and
+Atlantic Avenue should be included.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="bannedRoutes" style="query">
+            <wadl:doc>
+              <![CDATA[The list of banned routes.  The format is agency_route, so TriMet_100.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="transferPenalty" style="query">
+            <wadl:doc>
+              <![CDATA[An additional penalty added to boardings after the first.  The value is in OTP's
+internal weight units, which are roughly equivalent to seconds.  Set this to a high
+value to discourage transfers.  Of course, transfers that save significant
+time or walking will still be taken.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="maxTransfers" style="query">
+            <wadl:doc>
+              <![CDATA[The maximum number of transfers (that is, one plus the maximum number of boardings)
+that a trip will be allowed.  Larger values will slow performance, but could give
+better routes.  This is limited on the server side by the MAX_TRANSFERS value in
+org.opentripplanner.api.ws.Planner.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="batch" style="query">
+            <wadl:doc>
+              <![CDATA[If true, goal direction is turned off and a full path tree is built (specify only once)]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="startTransitStopId" style="query">
+            <wadl:doc>
+              <![CDATA[A transit stop required to be the first stop in the search]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="clampInitialWait" style="query">
+            <wadl:doc>
+              <![CDATA[When subtracting initial wait time, do not subtract more than this value, to prevent overly
+optimistic trips. Reasoning is that it is reasonable to delay a trip start 15 minutes to
+make a better trip, but that it is not reasonable to delay a trip start 15 hours; if that
+is to be done, the time needs to be included in the trip time. This number depends on the
+transit system; for transit systems where trips are planned around the vehicles, this number
+can be much higher. For instance, it's perfectly reasonable to delay one's trip 12 hours if
+one is taking a cross-country Amtrak train from Emeryville to Chicago. Has no effect in
+stock OTP, only in Analyst.
+
+A value of 0 (the default) disables.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="reverseOptimizeOnTheFly" style="query">
+            <wadl:doc>
+              <![CDATA[If true, this trip will be reverse-optimized on the fly. Otherwise, reverse-optimization
+will occur once a trip has been chosen (in Analyst, it will not be done at all).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="boardSlack" style="query"/>
+          <wadl:param name="alightSlack" style="query"/>
+          <wadl:param name="locale" style="query"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:representation mediaType="text/plain"/>
+          <wadl:representation mediaType="image/*"/>
+          <wadl:representation mediaType="text/*"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/components/polygons">
+      <wadl:method name="GET">
+        <wadl:doc>
+          <![CDATA[Get polygons covering the components of the graph. The largest component (in terms of number
+of nodes) will not overlap any other components (it will have holes); the others may overlap
+each other.]]>
+        </wadl:doc>
+        <wadl:request>
+          <wadl:param name="modes" style="query"/>
+          <wadl:param name="date" style="query"/>
+          <wadl:param name="time" style="query"/>
+          <wadl:param name="bannedRoutes" style="query"/>
+          <wadl:param name="routerId" style="query"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/internals/annotations">
+      <wadl:method name="GET">
+        <wadl:request>
+          <wadl:param name="routerId" style="query"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/internals/countFeatures">
+      <wadl:method name="GET">
+        <wadl:doc>
+          <![CDATA[Count vertices and edges inside a bbox.]]>
+        </wadl:doc>
+        <wadl:request>
+          <wadl:param name="lowerLeft" style="query"/>
+          <wadl:param name="upperRight" style="query"/>
+          <wadl:param name="routerId" style="query"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/internals/edges">
+      <wadl:method name="GET">
+        <wadl:doc>
+          <![CDATA[Get edges inside a bbox.]]>
+        </wadl:doc>
+        <wadl:request>
+          <wadl:param name="lowerLeft" style="query"/>
+          <wadl:param name="upperRight" style="query"/>
+          <wadl:param name="exactClass" style="query"/>
+          <wadl:param name="skipTransit" style="query"/>
+          <wadl:param name="skipStreets" style="query"/>
+          <wadl:param name="skipNoGeometry" style="query"/>
+          <wadl:param name="routerId" style="query"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/internals/edgesForVertex">
+      <wadl:method name="GET">
+        <wadl:doc>
+          <![CDATA[Get edges connected to an vertex]]>
+        </wadl:doc>
+        <wadl:request>
+          <wadl:param name="vertex" style="query"/>
+          <wadl:param name="routerId" style="query"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/internals/vertex">
+      <wadl:method name="GET">
+        <wadl:doc>
+          <![CDATA[Get vertices inside a bbox.]]>
+        </wadl:doc>
+        <wadl:request>
+          <wadl:param name="label" style="query"/>
+          <wadl:param name="routerId" style="query"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/internals/vertices">
+      <wadl:method name="GET">
+        <wadl:doc>
+          <![CDATA[Get vertices inside a bbox.]]>
+        </wadl:doc>
+        <wadl:request>
+          <wadl:param name="lowerLeft" style="query"/>
+          <wadl:param name="upperRight" style="query"/>
+          <wadl:param name="pointsOnly" style="query"/>
+          <wadl:param name="exactClass" style="query"/>
+          <wadl:param name="skipTransit" style="query"/>
+          <wadl:param name="skipStreets" style="query"/>
+          <wadl:param name="routerId" style="query"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/internals/verticesForEdge">
+      <wadl:method name="GET">
+        <wadl:doc>
+          <![CDATA[Get vertices connected to an edge]]>
+        </wadl:doc>
+        <wadl:request>
+          <wadl:param name="edge" style="query"/>
+          <wadl:param name="routerId" style="query"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/monitoring/long">
+      <wadl:method name="GET">
+        <wadl:doc>
+          <![CDATA[Get a Long from the monitoring store]]>
+        </wadl:doc>
+        <wadl:request>
+          <wadl:param name="key" style="query"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/monitoring/monitoring">
+      <wadl:method name="POST">
+        <wadl:doc>
+          <![CDATA[Turn on/off monitoring for a given key]]>
+        </wadl:doc>
+        <wadl:request/>
+        <wadl:response>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+      <wadl:method name="GET">
+        <wadl:doc>
+          <![CDATA[Turn on/off monitoring for a given key]]>
+        </wadl:doc>
+        <wadl:request>
+          <wadl:param name="key" style="query"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/patch/patch">
+      <wadl:method name="POST">
+        <wadl:request>
+          <wadl:representation mediaType="application/xml" element="PatchSet"/>
+          <wadl:representation mediaType="text/xml" element="PatchSet"/>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:representation mediaType="application/xml" element="PatchCreationResponse"/>
+          <wadl:representation mediaType="text/xml" element="PatchCreationResponse"/>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/patch/routePatches">
+      <wadl:method name="GET">
+        <wadl:doc>
+          <![CDATA[Return a list of all patches that apply to a given route]]>
+        </wadl:doc>
+        <wadl:request>
+          <wadl:param name="agency" style="query"/>
+          <wadl:param name="id" style="query"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:doc>
+            <![CDATA[Returns either an XML or a JSON document, depending on the HTTP Accept header of the
+client making the request.]]>
+          </wadl:doc>
+          <wadl:representation mediaType="application/xml" element="patchResponse"/>
+          <wadl:representation mediaType="text/xml" element="patchResponse"/>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/patch/stopPatches">
+      <wadl:method name="GET">
+        <wadl:doc>
+          <![CDATA[Return a list of all patches that apply to a given stop]]>
+        </wadl:doc>
+        <wadl:request>
+          <wadl:param name="agency" style="query"/>
+          <wadl:param name="id" style="query"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:doc>
+            <![CDATA[Returns either an XML or a JSON document, depending on the HTTP Accept header of the
+client making the request.]]>
+          </wadl:doc>
+          <wadl:representation mediaType="application/xml" element="patchResponse"/>
+          <wadl:representation mediaType="text/xml" element="patchResponse"/>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/plan/first">
+      <wadl:method name="GET">
+        <wadl:request>
+          <wadl:param name="fromPlace" style="query">
+            <wadl:doc>
+              <![CDATA[The start location -- either latitude, longitude pair in degrees or a Vertex
+label. For example, <tt>40.714476,-74.005966</tt> or
+<tt>mtanyctsubway_A27_S</tt>.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="toPlace" style="query">
+            <wadl:doc>
+              <![CDATA[The end location (see fromPlace for format).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="intermediatePlaces" style="query">
+            <wadl:doc>
+              <![CDATA[An unordered list of intermediate locations to be visited (see the fromPlace for format).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="intermediatePlacesOrdered" style="query">
+            <wadl:doc>
+              <![CDATA[Whether or not the order of intermediate locations is to be respected (TSP vs series).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="date" style="query">
+            <wadl:doc>
+              <![CDATA[The date that the trip should depart (or arrive, for requests where arriveBy is true).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="time" style="query">
+            <wadl:doc>
+              <![CDATA[The time that the trip should depart (or arrive, for requests where arriveBy is true).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="routerId" style="query">
+            <wadl:doc>
+              <![CDATA[Router ID used when in multiple graph mode. Unused in singleton graph mode.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="arriveBy" style="query">
+            <wadl:doc>
+              <![CDATA[Whether the trip should depart or arrive at the specified date and time.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="wheelchair" style="query">
+            <wadl:doc>
+              <![CDATA[Whether the trip must be wheelchair accessible.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="maxWalkDistance" style="query">
+            <wadl:doc>
+              <![CDATA[The maximum distance (in meters) the user is willing to walk. Defaults to approximately 1/2 mile.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="walkSpeed" style="query">
+            <wadl:doc>
+              <![CDATA[The user's walking speed in meters/second. Defaults to approximately 3 MPH.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="bikeSpeed" style="query">
+            <wadl:doc>
+              <![CDATA[The user's biking speed in meters/second. Defaults to approximately 11 MPH, or 9.5 for bikeshare.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="triangleSafetyFactor" style="query">
+            <wadl:doc>
+              <![CDATA[For bike triangle routing, how much safety matters (range 0-1).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="triangleSlopeFactor" style="query">
+            <wadl:doc>
+              <![CDATA[For bike triangle routing, how much slope matters (range 0-1).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="triangleTimeFactor" style="query">
+            <wadl:doc>
+              <![CDATA[For bike triangle routing, how much time matters (range 0-1).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="optimize" style="query">
+            <wadl:doc>
+              <![CDATA[The set of characteristics that the user wants to optimize for. @See OptimizeType]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="mode" style="query">
+            <wadl:doc>
+              <![CDATA[The set of modes that a user is willing to use.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="minTransferTime" style="query">
+            <wadl:doc>
+              <![CDATA[The minimum time, in seconds, between successive trips on different vehicles.
+This is designed to allow for imperfect schedule adherence.  This is a minimum;
+transfers over longer distances might use a longer time.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="numItineraries" style="query">
+            <wadl:doc>
+              <![CDATA[The maximum number of possible itineraries to return.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="preferredRoutes" style="query">
+            <wadl:doc>
+              <![CDATA[The list of preferred routes.  The format is agency_route, so TriMet_100.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="unpreferredRoutes" style="query">
+            <wadl:doc>
+              <![CDATA[The list of unpreferred routes.  The format is agency_route, so TriMet_100.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="showIntermediateStops" style="query">
+            <wadl:doc>
+              <![CDATA[Whether intermediate stops -- those that the itinerary passes in a vehicle, but
+does not board or alight at -- should be returned in the response.  For example,
+on a Q train trip from Prospect Park to DeKalb Avenue, whether 7th Avenue and
+Atlantic Avenue should be included.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="bannedRoutes" style="query">
+            <wadl:doc>
+              <![CDATA[The list of banned routes.  The format is agency_route, so TriMet_100.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="transferPenalty" style="query">
+            <wadl:doc>
+              <![CDATA[An additional penalty added to boardings after the first.  The value is in OTP's
+internal weight units, which are roughly equivalent to seconds.  Set this to a high
+value to discourage transfers.  Of course, transfers that save significant
+time or walking will still be taken.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="maxTransfers" style="query">
+            <wadl:doc>
+              <![CDATA[The maximum number of transfers (that is, one plus the maximum number of boardings)
+that a trip will be allowed.  Larger values will slow performance, but could give
+better routes.  This is limited on the server side by the MAX_TRANSFERS value in
+org.opentripplanner.api.ws.Planner.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="batch" style="query">
+            <wadl:doc>
+              <![CDATA[If true, goal direction is turned off and a full path tree is built (specify only once)]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="startTransitStopId" style="query">
+            <wadl:doc>
+              <![CDATA[A transit stop required to be the first stop in the search]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="clampInitialWait" style="query">
+            <wadl:doc>
+              <![CDATA[When subtracting initial wait time, do not subtract more than this value, to prevent overly
+optimistic trips. Reasoning is that it is reasonable to delay a trip start 15 minutes to
+make a better trip, but that it is not reasonable to delay a trip start 15 hours; if that
+is to be done, the time needs to be included in the trip time. This number depends on the
+transit system; for transit systems where trips are planned around the vehicles, this number
+can be much higher. For instance, it's perfectly reasonable to delay one's trip 12 hours if
+one is taking a cross-country Amtrak train from Emeryville to Chicago. Has no effect in
+stock OTP, only in Analyst.
+
+A value of 0 (the default) disables.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="reverseOptimizeOnTheFly" style="query">
+            <wadl:doc>
+              <![CDATA[If true, this trip will be reverse-optimized on the fly. Otherwise, reverse-optimization
+will occur once a trip has been chosen (in Analyst, it will not be done at all).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="boardSlack" style="query"/>
+          <wadl:param name="alightSlack" style="query"/>
+          <wadl:param name="locale" style="query"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:representation mediaType="application/xml" element="response"/>
+          <wadl:representation mediaType="text/xml" element="response"/>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/plan/last">
+      <wadl:method name="GET">
+        <wadl:request>
+          <wadl:param name="fromPlace" style="query">
+            <wadl:doc>
+              <![CDATA[The start location -- either latitude, longitude pair in degrees or a Vertex
+label. For example, <tt>40.714476,-74.005966</tt> or
+<tt>mtanyctsubway_A27_S</tt>.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="toPlace" style="query">
+            <wadl:doc>
+              <![CDATA[The end location (see fromPlace for format).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="intermediatePlaces" style="query">
+            <wadl:doc>
+              <![CDATA[An unordered list of intermediate locations to be visited (see the fromPlace for format).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="intermediatePlacesOrdered" style="query">
+            <wadl:doc>
+              <![CDATA[Whether or not the order of intermediate locations is to be respected (TSP vs series).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="date" style="query">
+            <wadl:doc>
+              <![CDATA[The date that the trip should depart (or arrive, for requests where arriveBy is true).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="time" style="query">
+            <wadl:doc>
+              <![CDATA[The time that the trip should depart (or arrive, for requests where arriveBy is true).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="routerId" style="query">
+            <wadl:doc>
+              <![CDATA[Router ID used when in multiple graph mode. Unused in singleton graph mode.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="arriveBy" style="query">
+            <wadl:doc>
+              <![CDATA[Whether the trip should depart or arrive at the specified date and time.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="wheelchair" style="query">
+            <wadl:doc>
+              <![CDATA[Whether the trip must be wheelchair accessible.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="maxWalkDistance" style="query">
+            <wadl:doc>
+              <![CDATA[The maximum distance (in meters) the user is willing to walk. Defaults to approximately 1/2 mile.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="walkSpeed" style="query">
+            <wadl:doc>
+              <![CDATA[The user's walking speed in meters/second. Defaults to approximately 3 MPH.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="bikeSpeed" style="query">
+            <wadl:doc>
+              <![CDATA[The user's biking speed in meters/second. Defaults to approximately 11 MPH, or 9.5 for bikeshare.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="triangleSafetyFactor" style="query">
+            <wadl:doc>
+              <![CDATA[For bike triangle routing, how much safety matters (range 0-1).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="triangleSlopeFactor" style="query">
+            <wadl:doc>
+              <![CDATA[For bike triangle routing, how much slope matters (range 0-1).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="triangleTimeFactor" style="query">
+            <wadl:doc>
+              <![CDATA[For bike triangle routing, how much time matters (range 0-1).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="optimize" style="query">
+            <wadl:doc>
+              <![CDATA[The set of characteristics that the user wants to optimize for. @See OptimizeType]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="mode" style="query">
+            <wadl:doc>
+              <![CDATA[The set of modes that a user is willing to use.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="minTransferTime" style="query">
+            <wadl:doc>
+              <![CDATA[The minimum time, in seconds, between successive trips on different vehicles.
+This is designed to allow for imperfect schedule adherence.  This is a minimum;
+transfers over longer distances might use a longer time.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="numItineraries" style="query">
+            <wadl:doc>
+              <![CDATA[The maximum number of possible itineraries to return.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="preferredRoutes" style="query">
+            <wadl:doc>
+              <![CDATA[The list of preferred routes.  The format is agency_route, so TriMet_100.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="unpreferredRoutes" style="query">
+            <wadl:doc>
+              <![CDATA[The list of unpreferred routes.  The format is agency_route, so TriMet_100.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="showIntermediateStops" style="query">
+            <wadl:doc>
+              <![CDATA[Whether intermediate stops -- those that the itinerary passes in a vehicle, but
+does not board or alight at -- should be returned in the response.  For example,
+on a Q train trip from Prospect Park to DeKalb Avenue, whether 7th Avenue and
+Atlantic Avenue should be included.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="bannedRoutes" style="query">
+            <wadl:doc>
+              <![CDATA[The list of banned routes.  The format is agency_route, so TriMet_100.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="transferPenalty" style="query">
+            <wadl:doc>
+              <![CDATA[An additional penalty added to boardings after the first.  The value is in OTP's
+internal weight units, which are roughly equivalent to seconds.  Set this to a high
+value to discourage transfers.  Of course, transfers that save significant
+time or walking will still be taken.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="maxTransfers" style="query">
+            <wadl:doc>
+              <![CDATA[The maximum number of transfers (that is, one plus the maximum number of boardings)
+that a trip will be allowed.  Larger values will slow performance, but could give
+better routes.  This is limited on the server side by the MAX_TRANSFERS value in
+org.opentripplanner.api.ws.Planner.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="batch" style="query">
+            <wadl:doc>
+              <![CDATA[If true, goal direction is turned off and a full path tree is built (specify only once)]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="startTransitStopId" style="query">
+            <wadl:doc>
+              <![CDATA[A transit stop required to be the first stop in the search]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="clampInitialWait" style="query">
+            <wadl:doc>
+              <![CDATA[When subtracting initial wait time, do not subtract more than this value, to prevent overly
+optimistic trips. Reasoning is that it is reasonable to delay a trip start 15 minutes to
+make a better trip, but that it is not reasonable to delay a trip start 15 hours; if that
+is to be done, the time needs to be included in the trip time. This number depends on the
+transit system; for transit systems where trips are planned around the vehicles, this number
+can be much higher. For instance, it's perfectly reasonable to delay one's trip 12 hours if
+one is taking a cross-country Amtrak train from Emeryville to Chicago. Has no effect in
+stock OTP, only in Analyst.
+
+A value of 0 (the default) disables.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="reverseOptimizeOnTheFly" style="query">
+            <wadl:doc>
+              <![CDATA[If true, this trip will be reverse-optimized on the fly. Otherwise, reverse-optimization
+will occur once a trip has been chosen (in Analyst, it will not be done at all).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="boardSlack" style="query"/>
+          <wadl:param name="alightSlack" style="query"/>
+          <wadl:param name="locale" style="query"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:representation mediaType="application/xml" element="response"/>
+          <wadl:representation mediaType="text/xml" element="response"/>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/routers/{routerId}">
+      <wadl:param name="routerId" style="template"/>
+      <wadl:method name="GET">
+        <wadl:doc>
+          <![CDATA[Returns the bounds for a specific routerId, or verifies whether it is registered.]]>
+        </wadl:doc>
+        <wadl:request/>
+        <wadl:response>
+          <wadl:representation mediaType="application/xml"/>
+          <wadl:representation mediaType="text/xml"/>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+      <wadl:method name="PUT">
+        <wadl:doc>
+          <![CDATA[Load the graph for the specified routerId from disk.]]>
+        </wadl:doc>
+        <wadl:request>
+          <wadl:param name="preEvict" style="query">
+            <wadl:doc>
+              <![CDATA[before reloading each graph, evict the existing graph. This will prevent memory usage from increasing during the reload, but routing will be unavailable on this routerId for the duration of the operation.]]>
+            </wadl:doc>
+          </wadl:param>
+        </wadl:request>
+        <wadl:response>
+          <wadl:representation mediaType="text/plain"/>
+        </wadl:response>
+      </wadl:method>
+      <wadl:method name="POST">
+        <wadl:doc>
+          <![CDATA[Deserialize a graph sent with the HTTP request as POST data, associating it with the given
+routerId.]]>
+        </wadl:doc>
+        <wadl:request>
+          <wadl:representation mediaType="application/octet-stream"/>
+          <wadl:param name="preEvict" style="query"/>
+          <wadl:param name="loadLevel" style="query"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:representation mediaType="text/plain"/>
+        </wadl:response>
+      </wadl:method>
+      <wadl:method name="DELETE">
+        <wadl:doc>
+          <![CDATA[De-register a specific routerId, evicting the associated graph from memory.]]>
+        </wadl:doc>
+        <wadl:request/>
+        <wadl:response>
+          <wadl:doc>
+            <![CDATA[status code 200 if the routerId was de-registered,
+404 if the routerId was not registered.]]>
+          </wadl:doc>
+          <wadl:representation mediaType="text/plain"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/transit/agencyIds">
+      <wadl:method name="GET">
+        <wadl:doc>
+          <![CDATA[Return a list of all agency ids in the graph]]>
+        </wadl:doc>
+        <wadl:request>
+          <wadl:param name="routerId" style="query"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:representation mediaType="application/xml" element="AgencyList"/>
+          <wadl:representation mediaType="text/xml" element="AgencyList"/>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/transit/modes">
+      <wadl:method name="GET">
+        <wadl:doc>
+          <![CDATA[Return a list of all available transit modes supported, if any.]]>
+        </wadl:doc>
+        <wadl:request>
+          <wadl:param name="routerId" style="query"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:representation mediaType="application/xml"/>
+          <wadl:representation mediaType="text/xml"/>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/transit/routeData">
+      <wadl:method name="GET">
+        <wadl:doc>
+          <![CDATA[Return data about a route, such as its variants and directions, that OneBusAway's API doesn't handle]]>
+        </wadl:doc>
+        <wadl:request>
+          <wadl:param name="agency" style="query"/>
+          <wadl:param name="id" style="query"/>
+          <wadl:param name="references" style="query"/>
+          <wadl:param name="extended" style="query"/>
+          <wadl:param name="routerId" style="query"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:representation mediaType="application/xml"/>
+          <wadl:representation mediaType="text/xml"/>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/transit/routes">
+      <wadl:method name="GET">
+        <wadl:doc>
+          <![CDATA[Return a list of route ids]]>
+        </wadl:doc>
+        <wadl:request>
+          <wadl:param name="agency" style="query"/>
+          <wadl:param name="extended" style="query"/>
+          <wadl:param name="routerId" style="query"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:representation mediaType="application/xml"/>
+          <wadl:representation mediaType="text/xml"/>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/transit/routesBetweenStops">
+      <wadl:method name="GET">
+        <wadl:doc>
+          <![CDATA[Return a list of all routes that operate between start stop and end stop.]]>
+        </wadl:doc>
+        <wadl:request>
+          <wadl:param name="startAgency" style="query"/>
+          <wadl:param name="endAgency" style="query"/>
+          <wadl:param name="startStopId" style="query"/>
+          <wadl:param name="endStopId" style="query"/>
+          <wadl:param name="extended" style="query"/>
+          <wadl:param name="routerId" style="query"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:representation mediaType="application/xml"/>
+          <wadl:representation mediaType="text/xml"/>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/transit/routesForStop">
+      <wadl:method name="GET">
+        <wadl:doc>
+          <![CDATA[Return routes that a stop is served by]]>
+        </wadl:doc>
+        <wadl:request>
+          <wadl:param name="agency" style="query"/>
+          <wadl:param name="id" style="query"/>
+          <wadl:param name="extended" style="query"/>
+          <wadl:param name="routerId" style="query"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:representation mediaType="application/xml"/>
+          <wadl:representation mediaType="text/xml"/>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/transit/stopTimesForStop">
+      <wadl:method name="GET">
+        <wadl:doc>
+          <![CDATA[Return stop times for a stop, in seconds since the epoch startTime and endTime are in milliseconds since epoch]]>
+        </wadl:doc>
+        <wadl:request>
+          <wadl:param name="agency" style="query"/>
+          <wadl:param name="id" style="query"/>
+          <wadl:param name="startTime" style="query"/>
+          <wadl:param name="endTime" style="query"/>
+          <wadl:param name="extended" style="query"/>
+          <wadl:param name="references" style="query"/>
+          <wadl:param name="routeId" style="query"/>
+          <wadl:param name="routerId" style="query"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:representation mediaType="application/xml"/>
+          <wadl:representation mediaType="text/xml"/>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/transit/stopTimesForTrip">
+      <wadl:method name="GET">
+        <wadl:doc>
+          <![CDATA[Return subsequent stop times for a trip; time is in milliseconds since epoch]]>
+        </wadl:doc>
+        <wadl:request>
+          <wadl:param name="stopAgency" style="query"/>
+          <wadl:param name="stopId" style="query"/>
+          <wadl:param name="tripAgency" style="query"/>
+          <wadl:param name="tripId" style="query"/>
+          <wadl:param name="time" style="query"/>
+          <wadl:param name="extended" style="query"/>
+          <wadl:param name="routerId" style="query"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:representation mediaType="application/xml"/>
+          <wadl:representation mediaType="text/xml"/>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/transit/stopsInRectangle">
+      <wadl:method name="GET">
+        <wadl:doc>
+          <![CDATA[Return a list of all stops that are inside a rectangle given by lat lon positions.]]>
+        </wadl:doc>
+        <wadl:request>
+          <wadl:param name="agency" style="query"/>
+          <wadl:param name="leftUpLat" style="query"/>
+          <wadl:param name="leftUpLon" style="query"/>
+          <wadl:param name="rightUpLat" style="query"/>
+          <wadl:param name="rightUpLon" style="query"/>
+          <wadl:param name="extended" style="query"/>
+          <wadl:param name="routerId" style="query"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:representation mediaType="application/xml"/>
+          <wadl:representation mediaType="text/xml"/>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/transit/stopsNearPoint">
+      <wadl:method name="GET">
+        <wadl:doc>
+          <![CDATA[Return stops near a point]]>
+        </wadl:doc>
+        <wadl:request>
+          <wadl:param name="agency" style="query"/>
+          <wadl:param name="lat" style="query"/>
+          <wadl:param name="lon" style="query"/>
+          <wadl:param name="extended" style="query"/>
+          <wadl:param name="routerId" style="query"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:representation mediaType="application/xml"/>
+          <wadl:representation mediaType="text/xml"/>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/transit/variantForTrip">
+      <wadl:method name="GET">
+        <wadl:doc>
+          <![CDATA[Return variant for a trip]]>
+        </wadl:doc>
+        <wadl:request>
+          <wadl:param name="tripAgency" style="query"/>
+          <wadl:param name="tripId" style="query"/>
+          <wadl:param name="routerId" style="query"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:representation mediaType="application/xml"/>
+          <wadl:representation mediaType="text/xml"/>
+          <wadl:representation mediaType="application/json"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+    <wadl:resource path="/ws/tile/{z}/{x}/{y}.png">
+      <wadl:param name="x" style="template"/>
+      <wadl:param name="y" style="template"/>
+      <wadl:param name="z" style="template"/>
+      <wadl:method name="GET">
+        <wadl:request>
+          <wadl:param name="layers" style="query"/>
+          <wadl:param name="styles" style="query"/>
+          <wadl:param name="format" style="query"/>
+          <wadl:param name="fromPlace" style="query">
+            <wadl:doc>
+              <![CDATA[The start location -- either latitude, longitude pair in degrees or a Vertex
+label. For example, <tt>40.714476,-74.005966</tt> or
+<tt>mtanyctsubway_A27_S</tt>.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="toPlace" style="query">
+            <wadl:doc>
+              <![CDATA[The end location (see fromPlace for format).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="intermediatePlaces" style="query">
+            <wadl:doc>
+              <![CDATA[An unordered list of intermediate locations to be visited (see the fromPlace for format).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="intermediatePlacesOrdered" style="query">
+            <wadl:doc>
+              <![CDATA[Whether or not the order of intermediate locations is to be respected (TSP vs series).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="date" style="query">
+            <wadl:doc>
+              <![CDATA[The date that the trip should depart (or arrive, for requests where arriveBy is true).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="time" style="query">
+            <wadl:doc>
+              <![CDATA[The time that the trip should depart (or arrive, for requests where arriveBy is true).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="routerId" style="query">
+            <wadl:doc>
+              <![CDATA[Router ID used when in multiple graph mode. Unused in singleton graph mode.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="arriveBy" style="query">
+            <wadl:doc>
+              <![CDATA[Whether the trip should depart or arrive at the specified date and time.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="wheelchair" style="query">
+            <wadl:doc>
+              <![CDATA[Whether the trip must be wheelchair accessible.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="maxWalkDistance" style="query">
+            <wadl:doc>
+              <![CDATA[The maximum distance (in meters) the user is willing to walk. Defaults to approximately 1/2 mile.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="walkSpeed" style="query">
+            <wadl:doc>
+              <![CDATA[The user's walking speed in meters/second. Defaults to approximately 3 MPH.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="bikeSpeed" style="query">
+            <wadl:doc>
+              <![CDATA[The user's biking speed in meters/second. Defaults to approximately 11 MPH, or 9.5 for bikeshare.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="triangleSafetyFactor" style="query">
+            <wadl:doc>
+              <![CDATA[For bike triangle routing, how much safety matters (range 0-1).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="triangleSlopeFactor" style="query">
+            <wadl:doc>
+              <![CDATA[For bike triangle routing, how much slope matters (range 0-1).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="triangleTimeFactor" style="query">
+            <wadl:doc>
+              <![CDATA[For bike triangle routing, how much time matters (range 0-1).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="optimize" style="query">
+            <wadl:doc>
+              <![CDATA[The set of characteristics that the user wants to optimize for. @See OptimizeType]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="mode" style="query">
+            <wadl:doc>
+              <![CDATA[The set of modes that a user is willing to use.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="minTransferTime" style="query">
+            <wadl:doc>
+              <![CDATA[The minimum time, in seconds, between successive trips on different vehicles.
+This is designed to allow for imperfect schedule adherence.  This is a minimum;
+transfers over longer distances might use a longer time.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="numItineraries" style="query">
+            <wadl:doc>
+              <![CDATA[The maximum number of possible itineraries to return.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="preferredRoutes" style="query">
+            <wadl:doc>
+              <![CDATA[The list of preferred routes.  The format is agency_route, so TriMet_100.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="unpreferredRoutes" style="query">
+            <wadl:doc>
+              <![CDATA[The list of unpreferred routes.  The format is agency_route, so TriMet_100.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="showIntermediateStops" style="query">
+            <wadl:doc>
+              <![CDATA[Whether intermediate stops -- those that the itinerary passes in a vehicle, but
+does not board or alight at -- should be returned in the response.  For example,
+on a Q train trip from Prospect Park to DeKalb Avenue, whether 7th Avenue and
+Atlantic Avenue should be included.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="bannedRoutes" style="query">
+            <wadl:doc>
+              <![CDATA[The list of banned routes.  The format is agency_route, so TriMet_100.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="transferPenalty" style="query">
+            <wadl:doc>
+              <![CDATA[An additional penalty added to boardings after the first.  The value is in OTP's
+internal weight units, which are roughly equivalent to seconds.  Set this to a high
+value to discourage transfers.  Of course, transfers that save significant
+time or walking will still be taken.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="maxTransfers" style="query">
+            <wadl:doc>
+              <![CDATA[The maximum number of transfers (that is, one plus the maximum number of boardings)
+that a trip will be allowed.  Larger values will slow performance, but could give
+better routes.  This is limited on the server side by the MAX_TRANSFERS value in
+org.opentripplanner.api.ws.Planner.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="batch" style="query">
+            <wadl:doc>
+              <![CDATA[If true, goal direction is turned off and a full path tree is built (specify only once)]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="startTransitStopId" style="query">
+            <wadl:doc>
+              <![CDATA[A transit stop required to be the first stop in the search]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="clampInitialWait" style="query">
+            <wadl:doc>
+              <![CDATA[When subtracting initial wait time, do not subtract more than this value, to prevent overly
+optimistic trips. Reasoning is that it is reasonable to delay a trip start 15 minutes to
+make a better trip, but that it is not reasonable to delay a trip start 15 hours; if that
+is to be done, the time needs to be included in the trip time. This number depends on the
+transit system; for transit systems where trips are planned around the vehicles, this number
+can be much higher. For instance, it's perfectly reasonable to delay one's trip 12 hours if
+one is taking a cross-country Amtrak train from Emeryville to Chicago. Has no effect in
+stock OTP, only in Analyst.
+
+A value of 0 (the default) disables.]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="reverseOptimizeOnTheFly" style="query">
+            <wadl:doc>
+              <![CDATA[If true, this trip will be reverse-optimized on the fly. Otherwise, reverse-optimization
+will occur once a trip has been chosen (in Analyst, it will not be done at all).]]>
+            </wadl:doc>
+          </wadl:param>
+          <wadl:param name="boardSlack" style="query"/>
+          <wadl:param name="alightSlack" style="query"/>
+          <wadl:param name="locale" style="query"/>
+        </wadl:request>
+        <wadl:response>
+          <wadl:representation mediaType="image/*"/>
+        </wadl:response>
+      </wadl:method>
+    </wadl:resource>
+  </wadl:resources>
+</wadl:application>
