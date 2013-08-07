@@ -24,6 +24,9 @@ import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.PropertyModel;
 import org.geoserver.config.GeoServer;
+import org.geoserver.config.ServiceInfo;
+import org.geoserver.config.impl.DefaultGeoServerFacade;
+import org.geoserver.ows.LocalWorkspace;
 import org.springframework.context.ApplicationContext;
 
 /**
@@ -33,11 +36,18 @@ import org.springframework.context.ApplicationContext;
 public class ServiceDropDownChoice extends DropDownChoice<OLSGUIService>{
 	private OLSGUIService			selectedService = null;
 	private Form				form;
+	private String                         wsName;
 
 	public ServiceDropDownChoice(String id, PropertyModel<OLSGUIService> model, List<OLSGUIService> displayData, Form form) {
 	    super(id,model,displayData);
 	    this.form = form;
 	}
+	
+	public ServiceDropDownChoice(String id, PropertyModel<OLSGUIService> model, List<OLSGUIService> displayData, Form form, String wsName) {
+            super(id,model,displayData);
+            this.form = form;
+            this.wsName = wsName;
+        }
 	
 	@Override
 	protected void onSelectionChanged(OLSGUIService newSelection) {
@@ -70,6 +80,19 @@ public class ServiceDropDownChoice extends DropDownChoice<OLSGUIService>{
     	    OLS ols = OLS.get();
     	    GeoServer gs = ols.getGeoServer();
     	    OLSInfo olsInfo = gs.getService(OLSInfo.class);
+    	    DefaultGeoServerFacade gServerFacade = (DefaultGeoServerFacade) gs.getFacade();
+    	    for (ServiceInfo sInfo : gServerFacade.getAllServices()) {
+    	        if(sInfo.getClass().equals(OLSInfoImpl.class)){
+    	            //Sono dell serviceInfo di OLS
+    	            if(sInfo.getWorkspace() != null 
+    	                    && sInfo.getWorkspace().getName() == getWsName()){
+    	                olsInfo = (OLSInfo) sInfo;
+    	                LocalWorkspace.set(sInfo.getWorkspace());
+    	            }else{
+    	                olsInfo = gs.getService(OLSInfo.class);
+    	            }      
+    	        }
+            }
     	    
     	    OLSAbstractServiceProvider     activeProvider = (OLSAbstractServiceProvider)olsInfo.findServiceActive(selectedService);
     	    OLSAbstractServiceProvider     provider = null;
@@ -141,4 +164,13 @@ public class ServiceDropDownChoice extends DropDownChoice<OLSGUIService>{
                 
             });
 	}
+
+    public String getWsName() {
+        return wsName;
+    }
+
+    public void setWsName(String wsName) {
+        this.wsName = wsName;
+    }
+	
 }

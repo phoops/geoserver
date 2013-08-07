@@ -8,6 +8,7 @@ import it.phoops.geoserver.ols.reverse.solr.component.SOLRTabReverse;
 import it.phoops.geoserver.ols.reverse.solr.component.SOLRTabReverseFactory;
 import it.phoops.geoserver.ols.solr.utils.SolrPager;
 
+import java.io.Serializable;
 import java.io.StringReader;
 import java.math.BigInteger;
 import java.util.List;
@@ -52,7 +53,10 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 
-public class SOLRReverseServiceProvider extends OLSAbstractServiceProvider implements ReverseGeocodingServiceProvider{
+public class SOLRReverseServiceProvider extends OLSAbstractServiceProvider implements ReverseGeocodingServiceProvider, Serializable{
+    /** serialVersionUID */
+    private static final long serialVersionUID = 1L;
+
         public static final String COUNTRY_CODE = "IT";
         
 	//property name

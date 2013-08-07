@@ -265,5 +265,10 @@ public class DefaultGeoServerFacade implements GeoServerFacade {
             OwsUtils.set( o, "id", o.getClass().getSimpleName() + "-"+uid );
         }
     }
+
+    public List<ServiceInfo> getAllServices(){
+        return this.services;
+    }
+    
 }
  

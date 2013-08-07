@@ -9,6 +9,7 @@ import it.phoops.geoserver.ols.routing.pgrouting.component.PgRoutingTab;
 import it.phoops.geoserver.ols.routing.pgrouting.component.PgRoutingTabFactory;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -34,6 +35,7 @@ import net.opengis.www.xls.DistanceUnitType;
 import net.opengis.www.xls.EnvelopeType;
 import net.opengis.www.xls.LineStringType;
 import net.opengis.www.xls.ObjectFactory;
+import net.opengis.www.xls.PointType;
 import net.opengis.www.xls.Pos;
 import net.opengis.www.xls.PositionType;
 import net.opengis.www.xls.RouteGeometryType;
@@ -72,8 +74,11 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Point;
 
-public class PgRoutingServiceProvider extends OLSAbstractServiceProvider implements RoutingServiceProvider
-{
+public class PgRoutingServiceProvider extends OLSAbstractServiceProvider implements RoutingServiceProvider, Serializable{
+
+    /** serialVersionUID */
+    private static final long serialVersionUID = 1L;
+
     private static final Logger logger = Logger.getLogger(PgRoutingServiceProvider.class);
     
     public static final double  DEGREES_TO_RADIANS_FACTOR = Math.PI / 180.0;
@@ -276,7 +281,10 @@ public class PgRoutingServiceProvider extends OLSAbstractServiceProvider impleme
             psw = "";
         String active = ((PgRoutingTab)getTab()).getActivePgRouting();
         
-        String algorithm = ((PgRoutingTab)getTab()).getSelectedAlgorithm().getCode();
+        String algorithm = "";
+        if(((PgRoutingTab)getTab()).getSelectedAlgorithm() != null){
+            algorithm = ((PgRoutingTab)getTab()).getSelectedAlgorithm().getCode();
+        }
         
         String nodeTable = ((PgRoutingTab)getTab()).getNodeTableRouting();
         if(nodeTable == null)
@@ -293,8 +301,11 @@ public class PgRoutingServiceProvider extends OLSAbstractServiceProvider impleme
         String navigation       = ((PgRoutingTab)getTab()).getNavigationInfo();
         String navigationS      = ((PgRoutingTab)getTab()).getNavigationInfoShort();
         String navigationR      = ((PgRoutingTab)getTab()).getNavigationInfoRel();
-        String language         = ((PgRoutingTab)getTab()).getSelectedLanguage().getCode();
-        
+        String language = "";
+        if(((PgRoutingTab)getTab()).getSelectedLanguage() != null){
+            language = ((PgRoutingTab)getTab()).getSelectedLanguage().getCode();
+        }
+            
         setActive(active);
         setEndpointAddress(host);
         setPortNumber(port);
@@ -327,7 +338,11 @@ public class PgRoutingServiceProvider extends OLSAbstractServiceProvider impleme
         ((PgRoutingTab)pgRoutingTab).setUserPgRouting(this.getUser());
         ((PgRoutingTab)pgRoutingTab).setPswPgRouting(this.getPassword());
         Algorithm algorithm = Algorithm.get(this.getAlgorithm());
-        ((PgRoutingTab)pgRoutingTab).setCodeAlgorithmSelected(Integer.parseInt(algorithm.getCode()));
+        if(algorithm == null){
+            ((PgRoutingTab)pgRoutingTab).setCodeAlgorithmSelected(1);
+        }else{
+            ((PgRoutingTab)pgRoutingTab).setCodeAlgorithmSelected(Integer.parseInt(algorithm.getCode()));
+        }
         ((PgRoutingTab)pgRoutingTab).setNodeTableRouting(this.getNodeTable());
         ((PgRoutingTab)pgRoutingTab).setEdgeTableRouting(this.getEdgeTable());
         ((PgRoutingTab)pgRoutingTab).setEdgeQueryRouting(this.getEdgeQuery());
@@ -534,6 +549,7 @@ public class PgRoutingServiceProvider extends OLSAbstractServiceProvider impleme
                         distance = of.createDistanceType();
                         bdValue = BigDecimal.valueOf(length * 0.001);
                         bdValue = bdValue.setScale(2, BigDecimal.ROUND_DOWN);
+                        
                         distance.setValue(bdValue);
                         routeInstruction.setDistance(distance);
                         
@@ -556,6 +572,23 @@ public class PgRoutingServiceProvider extends OLSAbstractServiceProvider impleme
                         }
                         
     //                    routeInstruction.setInstruction(relativeDirection + " - " + edge.getAttribute("name").toString() + " - " + length + " - " + absoluteDirection); // FIXME
+                        
+                        RouteGeometryType routeGeoInstruction = of.createRouteGeometryType();
+//                        PointType pointType = of.createPointType();
+                        LineStringType lineStringType = of.createLineStringType();
+                        Pos posInstruction = new Pos();
+                        List<Double> posValues;
+                        List<Pos> posList;
+                        posValues = posInstruction.getValues();
+                        posList = lineStringType.getPos();
+                        
+                        posValues.add(preLastCoordinate.y);
+                        posValues.add(preLastCoordinate.x);
+                        posList.add(posInstruction);
+                        posList.add(posInstruction);
+                        
+                        routeGeoInstruction.setLineString(lineStringType);
+                        routeInstruction.setRouteInstructionGeometry(routeGeoInstruction);
                         routeInstruction.setInstruction(resultFormatter);
                         routeInstructions.getRouteInstructions().add(routeInstruction);
                     }

@@ -1,7 +1,9 @@
 package it.phoops.geoserver.ols;
 
 
+import org.geoserver.catalog.Catalog;
 import org.geoserver.config.GeoServer;
+import org.geoserver.config.GeoServerFacade;
 import org.geoserver.platform.GeoServerExtensions;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -68,5 +70,15 @@ public class OLS implements ApplicationContextAware {
     public static OLS get() {
         return GeoServerExtensions.bean(OLS.class);
     }
+    
+    public GeoServerFacade getFacade(){
+        return this.geoserver.getFacade();
+    }
+    
+    public Catalog getCatalog(){
+        return this.geoserver.getCatalog();
+    }
+    
+    
 }
 

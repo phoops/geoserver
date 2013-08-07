@@ -15,6 +15,7 @@ import it.toscana.regione.normaws.MusumeServiceLocator;
 import it.toscana.regione.normaws.MusumeSoapBindingStub;
 import it.toscana.regione.normaws.RispostaNormalizzataType;
 
+import java.io.Serializable;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -46,7 +47,9 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.ResourceModel;
 import org.geoserver.config.ServiceInfo;
 
-public class RFC59ServiceProvider extends OLSAbstractServiceProvider implements GeocodingServiceProvider {
+public class RFC59ServiceProvider extends OLSAbstractServiceProvider implements GeocodingServiceProvider, Serializable {
+    /** serialVersionUID */
+    private static final long serialVersionUID = 1L;
     public static final DataSource DATA_SOURCE = DataSource.REGIONE_TOSCANA;
     public static final String COUNTRY_CODE = "IT";
 

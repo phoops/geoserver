@@ -3,7 +3,6 @@ package it.phoops.geoserver.ols.web;
 import it.phoops.geoserver.ols.OLSInfo;
 import it.phoops.geoserver.ols.OLSService;
 import it.phoops.geoserver.ols.web.component.ServiceDropDownChoice;
-import it.phoops.geoserver.ols.web.validator.ValidateCheckboxTab;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -12,17 +11,14 @@ import java.util.List;
 import org.apache.wicket.Application;
 import org.apache.wicket.Component;
 import org.apache.wicket.Localizer;
-import org.apache.wicket.Session;
+import org.apache.wicket.PageParameters;
 import org.apache.wicket.extensions.ajax.markup.html.tabs.AjaxTabbedPanel;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.extensions.markup.html.tabs.TabbedPanel;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.SubmitLink;
-import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import org.geoserver.config.ServiceInfo;
 import org.geoserver.web.services.BaseServiceAdminPage;
 
 /**
@@ -31,6 +27,16 @@ import org.geoserver.web.services.BaseServiceAdminPage;
  * 
  */
 public class OLSAdminPage extends BaseServiceAdminPage<OLSInfo> {
+    private String wsName; 
+
+    public OLSAdminPage(PageParameters pageParams) {
+        super(pageParams);
+    }
+    
+    public OLSAdminPage(OLSInfo service) {
+        super(service);
+    }
+
 	public class OLSGUIService implements Serializable {
 		private OLSService service;
 		private String	code;
@@ -96,13 +102,20 @@ public class OLSAdminPage extends BaseServiceAdminPage<OLSInfo> {
     @Override
     protected void build(IModel info, Form form) {
         
+        ServiceInfo sInfo = (ServiceInfo) info.getObject();
+        
         SERVICES = new ArrayList<OLSGUIService>();
         SERVICES.add(new OLSGUIService(OLSService.GEOCODING, "OLSGUIService.geocoding", this));
         SERVICES.add(new OLSGUIService(OLSService.REVERSE_GEOCODING, "OLSGUIService.reverseGeocoding", this));
         SERVICES.add(new OLSGUIService(OLSService.ROUTING_NAVIGATION, "OLSGUIService.routingNavigation", this));
         
-        
-        ServiceDropDownChoice listServices = new ServiceDropDownChoice("service", new PropertyModel<OLSGUIService>(this, "selectedService"), SERVICES,form);
+//        ServiceDropDownChoice listServices = new ServiceDropDownChoice("service", new PropertyModel<OLSGUIService>(this, "selectedService"), SERVICES,form);
+        if(sInfo.getWorkspace() != null){
+            wsName = sInfo.getWorkspace().getName();
+        }else{
+            wsName = null;
+        }
+        ServiceDropDownChoice listServices = new ServiceDropDownChoice("service", new PropertyModel<OLSGUIService>(this, "selectedService"), SERVICES,form, wsName);
         
 	form.add(listServices);
 
@@ -143,7 +156,15 @@ public class OLSAdminPage extends BaseServiceAdminPage<OLSInfo> {
     public void setSelectedService(OLSGUIService selectedService) {
         this.selectedService = selectedService;
     }
-    
+
+    public String getWsName() {
+        return this.wsName;
+    }
+
+    public void setWsName(String wsName) {
+        this.wsName = wsName;
+    }
+//    
 //    public static void addOLSTab(ITab iTab){
 //        if(tabsOLS == null){
 //            tabsOLS = new ArrayList<ITab>();

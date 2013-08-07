@@ -36,7 +36,7 @@
     <bean id="routingHandler" class="it.phoops.geoserver.ols.routing.RoutingHandler">
     </bean>
 
-    	<bean id="olsDispatcher" class="it.phoops.geoserver.ols.OLSDispatcher">
+    <bean id="olsDispatcher" class="it.phoops.geoserver.ols.OLSDispatcher">
 		<!-- <constructor-arg ref="resourceLoader" /> -->
         <property name="handlers">
             <map>
@@ -50,13 +50,26 @@
             </map>
         </property>
 	</bean>
+	
+	<bean id="workspaceHandler" class="it.phoops.geoserver.ols.util.OLSWorkspaceHandler">
+    </bean>
+
+	<bean id="olsDispatcherWS" class="it.phoops.geoserver.ols.OLSDispacherWS">
+        <property name="handlers">
+            <map>
+                <entry key="/*[local-name() = 'WorkspaceRequest' and namespace-uri()='http://www.opengis.net/xls']"><ref bean="workspaceHandler"/></entry>
+            </map>
+        </property>
+	</bean>
 
 	<bean id="olsDispatcherMapping"
 		class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
 		<property name="alwaysUseFullPath" value="true" />
 		<property name="mappings">
 			<props>
+				<prop key="/ols/**/ws">olsDispatcher</prop>
 				<prop key="/ols">olsDispatcher</prop>
+				<prop key="/workspace">olsDispatcherWS</prop>
 			</props>
 		</property>
 	</bean>

@@ -19,7 +19,7 @@ import it.phoops.geoserver.ols.routing.otp.client.ns0.WalkStep;
 import it.phoops.geoserver.ols.routing.otp.component.OTPTab;
 import it.phoops.geoserver.ols.routing.otp.component.OTPTabFactory;
 
-import java.io.FileInputStream;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.MessageFormat;
@@ -45,6 +45,7 @@ import net.opengis.www.xls.DistanceUnitType;
 import net.opengis.www.xls.EnvelopeType;
 import net.opengis.www.xls.LineStringType;
 import net.opengis.www.xls.ObjectFactory;
+import net.opengis.www.xls.PointType;
 import net.opengis.www.xls.Pos;
 import net.opengis.www.xls.PositionType;
 import net.opengis.www.xls.RouteGeometryType;
@@ -59,20 +60,21 @@ import net.opengis.www.xls.WayPointType;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.ResourceModel;
-import org.apache.wicket.model.StringResourceModel;
-import org.apache.wicket.util.resource.StringResourceStream;
 import org.geoserver.config.ServiceInfo;
-import org.geotools.data.property.PropertyDataStoreFactory;
 import org.opentripplanner.util.PolylineEncoder;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
+import com.sun.xml.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 
-public class OTPServiceProvider extends OLSAbstractServiceProvider implements RoutingServiceProvider {
+public class OTPServiceProvider extends OLSAbstractServiceProvider implements RoutingServiceProvider, Serializable {
+
+    /** serialVersionUID */
+    private static final long serialVersionUID = 1L;
     //Properties Name
     private static final String  PN_ENDPOINT_ADDRESS    = "OLS.serviceProvider.geocoding.otp.service.endpointAddress";
     private static final String  PN_NAVIGATION_INFO     = "OLS.serviceProvider.geocoding.otp.service.navigationInfo";
@@ -204,6 +206,7 @@ public class OTPServiceProvider extends OLSAbstractServiceProvider implements Ro
         JAXBElement<DetermineRouteResponseType> retval = null;
         DatatypeFactory                         df;
         
+        
         try {
             df = DatatypeFactory.newInstance();
         } catch (DatatypeConfigurationException e) {
@@ -278,6 +281,8 @@ public class OTPServiceProvider extends OLSAbstractServiceProvider implements Ro
         
         queryParams.add("fromPlace",    formatPosition(startPosition));
         if(viaPosition != null){
+            Integer ordinal = preference.ordinal();
+            queryParams.add("ordinal", ordinal.toString());
             queryParams.add("showIntermediateStops", "true");
             for (PositionType via : viaPosition) {
                 queryParams.add("intermediatePlaces", formatPosition(via));
@@ -362,23 +367,41 @@ public class OTPServiceProvider extends OLSAbstractServiceProvider implements Ro
         double                  totalDistance = 0.0;
         EncodedPolylineBean     legGeometry;
         Geometry                geometry = null;
+        Geometry                geometryComplete = null;
         GeometryFactory         gf = new GeometryFactory();
         Steps                   legSteps;
         RouteInstruction        routeInstruction;
         DistanceType            distance;
+        ArrayList<Geometry>     geometrySegmentList = new ArrayList<Geometry>();
         
         for (Leg leg : itinerary.getLegs().getLeg()) {
             totalDistance += leg.getDistance();
             legGeometry = leg.getLegGeometry();
+            
+            Coordinate starWalkPoint = new Coordinate(leg.getFrom().getLat(), leg.getFrom().getLon());
+            Coordinate endWalkPoint = new Coordinate(leg.getTo().getLat(), leg.getTo().getLon());
+            leg.getFrom();
+            leg.getTo();
             
             if (geometry == null) {
                 geometry = gf.createLineString(decode(legGeometry).toArray(new Coordinate[0]));
             } else {
                 geometry = geometry.union(gf.createLineString(decode(legGeometry).toArray(new Coordinate[0])));
             }
-
+            //Definisco la Geometria totale del percorso
+            geometryComplete = geometry;
             legSteps = leg.getSteps();
             
+            //Definizione di un array contenente tutte le coordinate della geometria calcolata
+            //tramite OTP
+            Coordinate[] coordinatesGeometry = geometry.getCoordinates();
+            //Costruisci un array senza il primo e l'ultimo step
+                //Primo Coordinata della geometria
+            Coordinate firstCoordinate = coordinatesGeometry[0];
+                //Ultima Coordinata della geometria
+            ArrayList<Coordinate> listCoordinate = new ArrayList<Coordinate>();
+            
+            int index = 0;
             for (WalkStep walkStep : legSteps.getWalkSteps()) {
                 routeInstruction = of.createRouteInstruction();
                 
@@ -386,8 +409,56 @@ public class OTPServiceProvider extends OLSAbstractServiceProvider implements Ro
                 BigDecimal bdValue = BigDecimal.valueOf(walkStep.getDistance()* 0.001);
                 bdValue = bdValue.setScale(2, BigDecimal.ROUND_DOWN);
                 
+                //Allineamento del valore X per WalkStep
+                String valueStringX = Double.toString(walkStep.getLat());
+                String splittedValueX = valueStringX.substring(0, 8);
+                double valueX = Double.parseDouble(splittedValueX);
+                //Allineamento del valore Y per WalkStep
+                String valueStringY = Double.toString(walkStep.getLon());
+                String splittedValueY = valueStringY.substring(0, 8);
+                double valueY = Double.parseDouble(splittedValueY);
+                
+                //Controllo il primo punto
+//                if(index == 0){
+//                    Geometry segmentGeometry = gf.createPoint(firstCoordinate);
+//                    geometrySegmentList.add(segmentGeometry);
+//                }else{
+//                    //Calcolo del WalkStep
+//                    //Ciclo per determinare quali punti della geometria vanno inseriti nei segmenti
+//                    for (int i = 1; i < coordinatesGeometry.length; i++) {
+//                        //Allineamento del valoreX per i punti della geometria
+//                        String geomStringValueX = Double.toString(coordinatesGeometry[i].x);
+//                        String geomSplitValueX = geomStringValueX;
+//                        if(geomStringValueX.length() >= 8)
+//                            geomSplitValueX = geomStringValueX.substring(0, 8);
+//                        double geomValueX = Double.parseDouble(geomSplitValueX);
+//                        //Allineamento del valoreY per i punti della geometria
+//                        String geomStringValueY = Double.toString(coordinatesGeometry[i].y);
+//                        String geomSplitValueY = geomStringValueY;
+//                        if(geomStringValueY.length() >= 8)
+//                            geomSplitValueY = geomStringValueY.substring(0, 8);
+//                        double geomValueY = Double.parseDouble(geomSplitValueY);
+//                        if(geomValueX == valueX
+//                                && geomValueY == valueY){
+//                            listCoordinate.add(coordinatesGeometry[i]);
+//                            if(listCoordinate.size()== 1){
+//                                listCoordinate.add(coordinatesGeometry[i+1]);
+//                            }
+//                            Coordinate[] coordinateG = new Coordinate[listCoordinate.size()];
+//                            coordinateG = listCoordinate.toArray(coordinateG);
+//                            Geometry segmentGeometry = gf.createLineString(coordinateG);
+//                            geometrySegmentList.add(segmentGeometry);
+//                            coordinatesGeometry = calculateCoordinatesGeometry(listCoordinate, coordinatesGeometry);
+//                            break;
+//                        }else{
+//                            listCoordinate.add(coordinatesGeometry[i]);
+//                        }
+//                    }
+//                }
+//                listCoordinate = new ArrayList<Coordinate>();
                 distance.setValue(bdValue);
                 routeInstruction.setDistance(distance);
+                
                 
                 String relativeDirection = null;
                 String absoluteDirection = null;
@@ -414,10 +485,41 @@ public class OTPServiceProvider extends OLSAbstractServiceProvider implements Ro
                     }else
                         resultFormatter = MessageFormat.format(properties.getProperty(PN_NAVIGATION_S_INFO), absoluteDirection, bdValue);
                 }
-                routeInstruction.setInstruction(resultFormatter);
-                routeInstructions.getRouteInstructions().add(routeInstruction);
                 
+                routeInstruction.setInstruction(resultFormatter);
+                //TODO:
+                //Setting della geometria pre la RouteInstruction -> Visualizzazione del percorso su mappa
+                RouteGeometryType routeGeometry = of.createRouteGeometryType();
+                
+                PointType pointType = of.createPointType();
+                LineStringType lineStringType = of.createLineStringType();
+                Pos posInstruction = new Pos();
+                List<Double> posValues;
+                List<Pos> posList;
+                posValues = posInstruction.getValues();
+                posList = lineStringType.getPos(); 
+                
+                posValues.add(walkStep.getLat());
+                posValues.add(walkStep.getLon());
+                posList.add(posInstruction);
+                posList.add(posInstruction);
+                
+                routeGeometry.setLineString(lineStringType);
+                routeInstruction.setRouteInstructionGeometry(routeGeometry);
+                routeInstructions.getRouteInstructions().add(routeInstruction);
+                index ++;
             }
+            
+            //Aggiungi l'ultima tratta del percorso
+//            listCoordinate = new ArrayList<Coordinate>();
+//            Coordinate[] coordinateG = null;
+//            for (int i = 0; i < coordinatesGeometry.length; i++) {
+//                listCoordinate.add(coordinatesGeometry[i]);
+//                coordinateG = new Coordinate[listCoordinate.size()];
+//                coordinateG = listCoordinate.toArray(coordinateG);
+//            }
+//            Geometry segmentGeometry = gf.createLineString(coordinateG);
+//            geometrySegmentList.add(segmentGeometry);
         }
         
         distance = of.createDistanceType();
@@ -435,6 +537,8 @@ public class OTPServiceProvider extends OLSAbstractServiceProvider implements Ro
         double                  maxX = -360;
         double                  minY = 360;
         double                  maxY = -360;
+        
+        
         
         for (Coordinate coord : geometry.getCoordinates()) {
             pos = new Pos();
@@ -485,6 +589,25 @@ public class OTPServiceProvider extends OLSAbstractServiceProvider implements Ro
         retval = of.createDetermineRouteResponse(determineRouteResponse);
         
         return retval;
+    }
+    
+    private Coordinate[] calculateCoordinatesGeometry(ArrayList<Coordinate> listCoordinate, Coordinate[] geomCoordinates){
+        ArrayList<Coordinate> result = new ArrayList<Coordinate>();
+
+        result.add(listCoordinate.get(listCoordinate.size()-1));
+        for (Coordinate coordinate : listCoordinate) {
+            for (int i = 1; i < geomCoordinates.length; i++) {
+                if(!coordinate.equals(geomCoordinates[i])){
+                    if(!result.contains(geomCoordinates[i])
+                            && !listCoordinate.contains(geomCoordinates[i])){
+                        result.add(geomCoordinates[i]);
+                    }
+                }
+            }
+        }
+        
+        Coordinate[] toReturn = new Coordinate[result.size()];
+        return result.toArray(toReturn);
     }
     
     private String formatPosition(PositionType position)

@@ -275,7 +275,7 @@ public class PgRoutingTab extends AbstractTab implements ValidateCheckboxTab{
         return edgeQueryRouting;
     }
 
-    public void setEdgeQueryRouting(String undirectedQueryRouting) {
+    public void setUndirectedQueryRouting(String undirectedQueryRouting) {
         if(instancePanel != null)
             instancePanel.setEdgeQueryRouting(undirectedQueryRouting);
         this.undirectedQueryRouting = undirectedQueryRouting;
@@ -287,7 +287,7 @@ public class PgRoutingTab extends AbstractTab implements ValidateCheckboxTab{
         return undirectedQueryRouting;
     }
 
-    public void setUndirectedQueryRouting(String edgeQueryRouting) {
+    public void setEdgeQueryRouting(String edgeQueryRouting) {
         if(instancePanel != null)
             instancePanel.setEdgeQueryRouting(edgeQueryRouting);
         this.edgeQueryRouting = edgeQueryRouting;

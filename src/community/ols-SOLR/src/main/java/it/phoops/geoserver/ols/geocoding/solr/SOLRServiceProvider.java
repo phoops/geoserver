@@ -8,6 +8,7 @@ import it.phoops.geoserver.ols.geocoding.solr.component.SOLRTab;
 import it.phoops.geoserver.ols.geocoding.solr.component.SOLRTabFactory;
 import it.phoops.geoserver.ols.solr.utils.SolrPager;
 
+import java.io.Serializable;
 import java.io.StringReader;
 import java.math.BigInteger;
 import java.util.List;
@@ -47,7 +48,11 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 
-public class SOLRServiceProvider extends OLSAbstractServiceProvider implements GeocodingServiceProvider {
+public class SOLRServiceProvider extends OLSAbstractServiceProvider implements GeocodingServiceProvider, Serializable {
+
+    /** serialVersionUID */
+    private static final long serialVersionUID = 1L;
+
     public static final String COUNTRY_CODE = "IT";
 
     // Properties Name
